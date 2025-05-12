@@ -15,7 +15,8 @@
     "@automerge/automerge-repo": "^1.2.1",
     "@automerge/automerge-repo-network-broadcastchannel": "^1.2.1",
     "@automerge/automerge-repo-storage-indexeddb": "^1.2.1",
-    "@nosh/lexicon": "workspace:*",
+    "@tailwindcss/vite": "^4.1.6",
+    "@tanstack/react-query": "^5.76.0",
     "lodash.clonedeep": "^4.5.0",
     "lodash.memoize": "^4.1.2",
     "object-hash": "^3.0.0",
@@ -23,6 +24,7 @@
     "porto": "^0.0.21",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "tailwindcss": "^4.1.6",
     "wagmi": "^2.15.2"
   },
   "devDependencies": {

@@ -1,8 +1,6 @@
 import './App.css'
-import CartView from './views/CartView'
-import MerchantView from './views/MerchantView'
 import { CartProvider } from './context/CartContext'
-import PortoAuth, { wagmiConfig } from './views/PortoAuth'
+import Order, { wagmiConfig } from './views/Order'
 import { WagmiProvider } from 'wagmi'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from './queryClient'
@@ -12,9 +10,7 @@ function App() {
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <CartProvider>
-          <PortoAuth />
-          {/* <CartView />
-          <MerchantView /> */}
+          <Order />
         </CartProvider>
       </QueryClientProvider>
     </WagmiProvider>

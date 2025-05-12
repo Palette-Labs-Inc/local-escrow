@@ -11,57 +11,14 @@ import {
   useWatchContractEvent,
   Connector,
   createStorage,
-  useSwitchChain,
 } from 'wagmi'
 import { Hex, Json, Value } from 'ox'
-import { Storage } from 'porto'
 import { useEffect, useState } from 'react'
 import { useMutation } from 'wagmi/query'
 import EscrowFactory from '../contracts/EscrowFactory'
 import { queryClient } from '../queryClient'
 import { Porto } from 'porto/remote'
 import { odysseyDevnet } from 'porto/Chains'
-// import SimpleEscrow from '../contracts/SimpleEscrow'
-// export type Chain = Chain_viem & {
-//   contracts: Chain_viem['contracts'] & {
-//     delegation?: ChainContract | undefined
-//   }
-// }
-
-// const portoDev: Chain = {
-//   blockExplorers: {
-//     default: {
-//       apiUrl: '',
-//       name: '',
-//       url: '',
-//     },
-//   },
-//   contracts: {
-//     delegation: {
-//       address: '0x1bd84b4584a60cbcc1b3153694a69315f795c1ba',
-//     },
-//   },
-//   id: 28_404,
-//   name: 'Porto Dev',
-//   nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
-//   rpcUrls: {
-//     default: { http: ['https://porto-dev.ithaca.xyz'] },
-//   },
-//   testnet: true,
-// }
-
-// const devConfig = {
-//   chains: [portoDev],
-//   mode: Mode.relay({
-//     feeToken: 'EXP',
-//   }),
-//   transports: {
-//     [portoDev.id]: {
-//       default: http(),
-//       relay: http('https://relay-dev.ithaca.xyz'),
-//     },
-//   },
-// } as const satisfies Partial<Porto.Config>
 
 const theChain = odysseyDevnet
 // const theChain = baseSepolia
@@ -79,7 +36,6 @@ export function truncateHexString({ address, length = 6 }: { address: string; le
   return length > 0 ? `${address.slice(0, length)}...${address.slice(-length)}` : address
 }
 
-console.log(wagmiConfig.chains)
 export const permissions = () =>
   ({
     expiry: Math.floor(Date.now() / 1_000) + 60 * 60, // 1 hour
@@ -102,7 +58,7 @@ export const permissions = () =>
         },
       ],
     },
-  }) as const
+  } as const)
 
 interface Key {
   type: 'p256'
@@ -111,23 +67,214 @@ interface Key {
   role: 'session' | 'admin'
 }
 
-export default function PortoAuth() {
+export default function Order() {
+  const [serverKey, setServerKey] = useState<Key | undefined>(undefined)
+  const { address } = useAccount()
+
+  // Get a server-generated key that we will give permissions to to act on behalf of the user.
+  // ATM it does nothing since I have not been able to get delegation working.
+  const requestServerKeyMutation = useMutation<Key>({
+    mutationFn: async () => {
+      if (!address) return
+      const searchParams = new URLSearchParams({
+        expiry: permissions().expiry.toString(),
+      })
+      const response = await fetch(`/api/keys/${address.toLowerCase()}?${searchParams.toString()}`)
+      const result = await Json.parse(await response.text())
+      setServerKey(result)
+      return result
+    },
+  })
+
+  useEffect(() => {
+    if (address) {
+      requestServerKeyMutation.mutate()
+    }
+  }, [address])
+
   return (
     <div>
-      <Register />
+      <Header />
+      <Cart serverKey={serverKey} />
+      <PastOrders />
       {/* <RequestKey /> */}
       {/* <GrantPermissions /> */}
       {/* <GetPermissions /> */}
       {/* <CreateEscrow /> */}
       {/* <Account /> */}
       {/* <Events /> */}
-      <Clear />
-      {/* <Orders /> */}
+      {/* <Clear /> */}
     </div>
   )
 }
 
-function Orders() {
+function Header() {
+  const label = `porto-test-${Date.now()}`
+  const connectors = useConnectors()
+  const connector = connectors.find((x) => x.id === 'xyz.ithaca.porto')
+  const connect = Hooks.useConnect()
+  const { address } = useAccount()
+  const [chainId, setChainId] = useState<number | undefined>(undefined)
+
+  useEffect(() => {
+    if (connector) {
+      if (connector) {
+        connector.getChainId().then((id) => setChainId(id))
+      }
+    }
+  }, [connector])
+
+  useEffect(() => {
+    if (connect.error) {
+      console.error(connect.error)
+    }
+  }, [connect.error])
+
+  return (
+    <div>
+      {chainId && <div className="mb-2">Connected to {chainId}</div>}
+      {address ? (
+        <div>Account: {address}</div>
+      ) : (
+        <button
+          disabled={connect.status === 'pending'}
+          onClick={async () => {
+            connect.mutate({
+              connector: connector as Connector,
+              createAccount: { label },
+            })
+          }}
+          type="button"
+        >
+          Sign In
+        </button>
+      )}
+    </div>
+  )
+}
+
+interface CartItem {
+  id: string
+  name: string
+  price: number
+  quantity: number
+}
+
+function Cart({ serverKey }: { serverKey?: Key }) {
+  const { address } = useAccount()
+  const [cart, setCart] = useState<CartItem[]>([])
+  const grantPermissions = Hooks.useGrantPermissions()
+
+  const {
+    data: callData,
+    error,
+    isPending,
+    sendCalls,
+  } = useSendCalls({
+    mutation: {
+      onSuccess: (data) => {
+        // 0x8cd4ff1a921f41a5f8962c8072840dcc777acd93612030a6a6a7fc5c65c271e6
+        console.log('onSuccess data', data)
+      },
+    },
+  })
+
+  useWatchContractEvent({
+    address: EscrowFactory.address as `0x${string}`,
+    eventName: 'EscrowCreated',
+    onLogs: (logs) => {
+      console.log('logs', logs)
+    },
+  })
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useCallsStatus({
+    id: callData?.id || 'disabled',
+    query: {
+      enabled: !!callData?.id,
+      refetchInterval: ({ state }) => {
+        if (state.data?.status === 'success') return false
+        return 1_000
+      },
+    },
+  })
+
+  useEffect(() => {
+    if (error) {
+      console.error('Error sending calls', error)
+    }
+  }, [error])
+
+  useEffect(() => {
+    const cartString = localStorage.getItem('cart')
+    const cart = cartString ? JSON.parse(cartString) : []
+    if (cart && cart.length) {
+      setCart(cart)
+    } else {
+      console.log('setting')
+      setCart([
+        {
+          id: '1',
+          name: 'Item 1',
+          price: 10,
+          quantity: 1,
+        },
+        {
+          id: '2',
+          name: 'Item 2',
+          price: 20,
+          quantity: 1,
+        },
+      ])
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart))
+  }, [cart])
+
+  // Temporary just set to the same address
+  const merchantAddress = address
+  const customerAddress = address
+  const arbiterAddress = address
+
+  const handleSubmit = (event: React.FormEvent<any>) => {
+    event.preventDefault()
+    grantPermissions.mutate({
+      key: serverKey,
+      expiry: permissions().expiry,
+      address,
+      permissions: permissions().permissions,
+    })
+    sendCalls({
+      calls: [
+        {
+          functionName: 'createEscrow',
+          abi: EscrowFactory.abi,
+          to: EscrowFactory.address,
+          args: [merchantAddress, customerAddress, arbiterAddress],
+        },
+      ],
+    })
+  }
+
+  return (
+    <div>
+      <h2>Cart</h2>
+      <ul>
+        {cart.map((item) => (
+          <li key={item.id}>
+            {item.name} - ${item.price} - x{item.quantity}
+          </li>
+        ))}
+      </ul>
+      <button disabled={isPending || isConfirming} onClick={handleSubmit}>
+        {isPending ? 'Placing...' : 'Place Order'}
+      </button>
+    </div>
+  )
+}
+
+function PastOrders() {
   const { address } = useAccount()
 
   const queryOrders = useQuery<
@@ -161,7 +308,7 @@ function Orders() {
 
   return (
     <div>
-      <h2>Orders</h2>
+      <h2>Past Orders</h2>
       <div>
         {queryOrders.data?.map((order) => (
           <div key={order.address}>
@@ -186,7 +333,6 @@ function RequestKey() {
       const searchParams = new URLSearchParams({
         expiry: permissions().expiry.toString(),
       })
-      console.log('Requesting ========')
       const response = await fetch(`/api/keys/${address.toLowerCase()}?${searchParams.toString()}`)
       const result = await Json.parse(await response.text())
       await wagmiConfig.storage?.setItem(`${address.toLowerCase()}-keys`, Json.stringify(result))
@@ -217,49 +363,6 @@ function RequestKey() {
   )
 }
 
-function Register() {
-  const label = 'ivan-account-003'
-  const connectors = useConnectors()
-  const connector = connectors.find((x) => x.id === 'xyz.ithaca.porto')
-  const connect = Hooks.useConnect()
-  const [chainId, setChainId] = useState<number | undefined>(undefined)
-  useEffect(() => {
-    if (connector) {
-      if (connector) {
-        connector.getChainId().then((id) => setChainId(id))
-      }
-    }
-  }, [connector])
-  const { chains, switchChain } = useSwitchChain()
-
-  return (
-    <div>
-      <div>
-        {chains.map((chain) => (
-          <button key={chain.id} onClick={() => switchChain({ chainId: chain.id })}>
-            {chain.name}
-          </button>
-        ))}
-      </div>
-      <button
-        disabled={connect.status === 'pending'}
-        onClick={async () => {
-          connect.mutate({
-            connector: connector as Connector,
-            createAccount: { label },
-            // grantPermissions: permissions(),
-          })
-        }}
-        type="button"
-      >
-        Register
-      </button>
-      <p>{String(connect.error?.stack)}</p>
-      <p>{chainId}</p>
-    </div>
-  )
-}
-
 function Clear() {
   const clear = () => {
     queryClient.clear()
@@ -284,6 +387,7 @@ function CreateEscrow() {
       },
     },
   })
+
   useWatchContractEvent({
     address: EscrowFactory.address as `0x${string}`,
     eventName: 'EscrowCreated',
@@ -311,23 +415,28 @@ function CreateEscrow() {
     }
   }, [data])
 
+  // Temporary just set to the same address
+  const merchantAddress = address
+  const customerAddress = address
+  const arbiterAddress = address
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    sendCalls({
+      calls: [
+        {
+          functionName: 'createEscrow',
+          abi: EscrowFactory.abi,
+          to: EscrowFactory.address,
+          args: [merchantAddress, customerAddress, arbiterAddress],
+        },
+      ],
+    })
+  }
+
   return (
     <div>
-      <form
-        onSubmit={(event) => {
-          event.preventDefault()
-          sendCalls({
-            calls: [
-              {
-                functionName: 'createEscrow',
-                abi: EscrowFactory.abi,
-                to: EscrowFactory.address,
-                args: [address, address, address],
-              },
-            ],
-          })
-        }}
-      >
+      <form onSubmit={handleSubmit}>
         <button type="submit" disabled={isPending} style={{ marginBottom: '5px' }}>
           {isPending ? 'Confirming...' : 'Create Escrow'}
         </button>

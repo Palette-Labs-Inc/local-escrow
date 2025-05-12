@@ -2,11 +2,10 @@ import EscrowFactory from './contracts/EscrowFactory'
 import { getKeypair } from './db'
 import { AppContext } from './context'
 import type { AbiEvent } from 'abitype'
-import { Mode, Porto, Chains } from 'porto'
+import { Porto } from 'porto'
 import { AbiFunction, Hex, P256, Signature } from 'ox'
 import SimpleEscrow from './contracts/SimpleEscrow'
 import { baseSepolia } from 'viem/chains'
-import { http, Chain as Chain_viem, ChainContract } from 'viem'
 
 // export const envs = ['anvil', 'dev', 'prod', 'stg'] as const
 // export type Env = 'anvil' | 'dev' | 'prod' | 'stg'
@@ -56,31 +55,32 @@ export function listenToEscrowCreated(ctx: AppContext) {
   })
 
   updateSinceLastProcessedBlock(ctx)
-  setInterval(
-    () => {
-      updateSinceLastProcessedBlock(ctx)
-    },
-    1000 * 60 * 10,
-  )
+  setInterval(() => {
+    updateSinceLastProcessedBlock(ctx)
+  }, 1000 * 60 * 10)
+}
+
+async function setLastProcessedBlock(ctx: AppContext, blockNumber: number) {
+  await ctx.db
+    .insertInto('lastProcessedBlock')
+    .values({
+      blockNumber: blockNumber,
+    })
+    .execute()
 }
 
 async function updateSinceLastProcessedBlock(ctx: AppContext) {
   console.log('Catching up since last processed block')
-  let lastProcessedBlock = await ctx.db.selectFrom('lastProcessedBlock').selectAll().executeTakeFirst()
-  const START_BLOCK = 25324505
-  if (!lastProcessedBlock) {
-    await ctx.db
-      .insertInto('lastProcessedBlock')
-      .values({
-        blockNumber: START_BLOCK,
-      })
-      .execute()
-    lastProcessedBlock = {
-      blockNumber: START_BLOCK,
-    }
-  }
-
   const currentBlockNumber = await ctx.client.getBlockNumber()
+  let lastProcessedBlock = await ctx.db.selectFrom('lastProcessedBlock').selectAll().executeTakeFirst()
+
+  const ALCHEMY_MAX_BLOCK_HISTORY = 400
+  if (!lastProcessedBlock || lastProcessedBlock.blockNumber < Number(currentBlockNumber) - ALCHEMY_MAX_BLOCK_HISTORY) {
+    lastProcessedBlock = {
+      blockNumber: Number(currentBlockNumber) - ALCHEMY_MAX_BLOCK_HISTORY,
+    }
+    await setLastProcessedBlock(ctx, lastProcessedBlock.blockNumber)
+  }
 
   const logs = await ctx.client.getLogs({
     address: EscrowFactory.address as `0x${string}`,
@@ -94,12 +94,7 @@ async function updateSinceLastProcessedBlock(ctx: AppContext) {
     processEscrowCreated(args.payee, args.escrowAddress, ctx)
   })
 
-  await ctx.db
-    .updateTable('lastProcessedBlock')
-    .set({
-      blockNumber: Number(currentBlockNumber),
-    })
-    .execute()
+  await setLastProcessedBlock(ctx, Number(currentBlockNumber))
 }
 
 async function processEscrowCreated(payee: `0x${string}`, escrowAddress: `0x${string}`, ctx: AppContext) {

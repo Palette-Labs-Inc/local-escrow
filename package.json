@@ -1,5 +1,5 @@
 {
-  "name": "@nosh/atmerchant",
+  "name": "@nosh/escrow_poc",
   "workspaces": {
     "packages": [
       "apps/*",
