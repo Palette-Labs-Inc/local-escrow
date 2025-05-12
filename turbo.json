@@ -1,0 +1,23 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [],
+  "globalEnv": [],
+  "tasks": {
+    "build": {
+      "outputs": [
+        "dist/**",
+        "lib/**",
+        "lib-esm/**",
+        "_bundles/**",
+        "_modules/**"
+      ],
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "typecheck": {},
+    "lexgen": {
+      "cache": false
+    }
+  }
+}

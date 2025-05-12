@@ -1,0 +1,16 @@
+{
+  "name": "@nosh/atmerchant",
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ]
+  },
+  "scripts": {
+    "typecheck": "turbo typecheck"
+  },
+  "packageManager": "yarn@4.3.1",
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  }
+}
