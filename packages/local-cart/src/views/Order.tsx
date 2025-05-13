@@ -254,16 +254,16 @@ function Cart({ serverKey }: { serverKey?: Key }) {
       address,
       permissions: permissions().permissions,
     })
-    sendCalls({
-      calls: [
-        {
-          functionName: 'createEscrow',
-          abi: EscrowFactory.abi,
-          to: EscrowFactory.address,
-          args: [merchantAddress, customerAddress, arbiterAddress],
-        },
-      ],
-    })
+    // sendCalls({
+    //   calls: [
+    //     {
+    //       functionName: 'createEscrow',
+    //       abi: EscrowFactory.abi,
+    //       to: EscrowFactory.address,
+    //       args: [merchantAddress, customerAddress, arbiterAddress],
+    //     },
+    //   ],
+    // })
   }
 
   return (
@@ -296,7 +296,10 @@ function PastOrders() {
   } = useSendCalls({
     mutation: {
       onSuccess: (data) => {
-        console.log('Escrow created', data)
+        console.log('Wrote contract', data)
+      },
+      onError: (error) => {
+        console.error('Error writing to contract', error)
       },
     },
   })
@@ -306,6 +309,18 @@ function PastOrders() {
       calls: [
         {
           functionName: 'dispute',
+          abi: SimpleEscrow.abi,
+          to: escrowAddress,
+          args: [],
+        },
+      ],
+    })
+  }
+  const handleRemoveDispute = (escrowAddress: string) => {
+    sendCalls({
+      calls: [
+        {
+          functionName: 'removeDispute',
           abi: SimpleEscrow.abi,
           to: escrowAddress,
           args: [],
@@ -376,6 +391,7 @@ function PastOrders() {
       eventName: event,
       onLogs: (logs) => {
         console.log(`Event "${event}" in contract ${logs[0].address}`, logs)
+        refetchContracts()
       },
     })
   })
@@ -398,10 +414,23 @@ function PastOrders() {
         {queryOrders.data?.map((order) => (
           <div key={order.address}>
             <h3>{order.address}</h3>
-            <button onClick={() => handleDispute(order.address)}>Dispute</button>
+            <div>
+              {' '}
+              Status:{' '}
+              {contractValues[order.address]?.isSettled
+                ? 'Settled'
+                : contractValues[order.address]?.isDisputed
+                ? 'Disputed'
+                : 'Active'}
+            </div>
+            {contractValues[order.address]?.isDisputed ? (
+              <button onClick={() => handleRemoveDispute(order.address)}>Remove Dispute</button>
+            ) : (
+              <button onClick={() => handleDispute(order.address)}>Dispute</button>
+            )}
             <div>Payer: {order.payer}</div>
             <div>Payee: {order.payee}</div>
-            <div>Arbiter: {order.arbiter}</div>
+            {/* <div>Arbiter: {order.arbiter}</div> */}
           </div>
         ))}
       </div>
@@ -460,91 +489,6 @@ function Logout() {
     localStorage.removeItem('wagmi.store')
   }
   return <button onClick={clear}>Logout</button>
-}
-
-function CreateEscrow() {
-  const { address } = useAccount()
-  const { data, error, isPending, sendCalls } = useSendCalls({
-    mutation: {
-      onSuccess: (data) => {
-        // 0x8cd4ff1a921f41a5f8962c8072840dcc777acd93612030a6a6a7fc5c65c271e6
-        console.log('onSuccess data', data)
-      },
-    },
-  })
-
-  useWatchContractEvent({
-    address: EscrowFactory.address as `0x${string}`,
-    eventName: 'EscrowCreated',
-    onLogs: (logs) => {
-      console.log('logs', logs)
-    },
-  })
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useCallsStatus({
-    id: data?.id || 'disabled',
-    query: {
-      enabled: !!data?.id,
-      refetchInterval: ({ state }) => {
-        if (state.data?.status === 'success') return false
-        return 1_000
-      },
-    },
-  })
-
-  const [transactions, setTransactions] = useState<Set<string>>(new Set())
-
-  useEffect(() => {
-    if (data?.id) {
-      setTransactions((prev) => new Set([...prev, data.id]))
-      console.log('data', data)
-    }
-  }, [data])
-
-  // Temporary just set to the same address
-  const merchantAddress = address
-  const customerAddress = address
-  const arbiterAddress = address
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    sendCalls({
-      calls: [
-        {
-          functionName: 'createEscrow',
-          abi: EscrowFactory.abi,
-          to: EscrowFactory.address,
-          args: [merchantAddress, customerAddress, arbiterAddress],
-        },
-      ],
-    })
-  }
-
-  return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <button type="submit" disabled={isPending} style={{ marginBottom: '5px' }}>
-          {isPending ? 'Confirming...' : 'Create Escrow'}
-        </button>
-      </form>
-      <ul style={{ listStyleType: 'none', padding: 0 }}>
-        {Array.from(transactions).map((tx) => (
-          <li key={tx}>
-            <a target="_blank" rel="noopener noreferrer" href={`https://sepolia.basescan.org/tx/${tx}`}>
-              {tx}
-            </a>
-          </li>
-        ))}
-      </ul>
-      <p>{isConfirming && 'Waiting for confirmation...'}</p>
-      <p>{isConfirmed && 'Transaction confirmed.'}</p>
-      {error && (
-        <div>
-          Error: {(error as BaseError).shortMessage} {error.message} <br />
-          {error.stack}
-        </div>
-      )}
-    </div>
-  )
 }
 
 function GrantPermissions() {
