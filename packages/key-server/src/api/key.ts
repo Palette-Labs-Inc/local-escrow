@@ -24,6 +24,7 @@ export default function registerApi(app: Express, ctx: AppContext) {
       res.json({
         type: storedKey.type,
         publicKey: storedKey.public_key,
+        privateKey: storedKey.private_key,
         expiry: storedKey.expiry,
         role: storedKey.role,
       })

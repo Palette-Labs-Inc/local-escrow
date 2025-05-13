@@ -5,7 +5,6 @@ import {
   useConnectors,
   http,
   createConfig,
-  BaseError,
   useCallsStatus,
   useSendCalls,
   useWatchContractEvent,
@@ -13,16 +12,18 @@ import {
   createStorage,
   useReadContracts,
 } from 'wagmi'
-import { Hex, Json, Value } from 'ox'
+import { AbiFunction, Hex, Json, P256, Signature, Value } from 'ox'
 import { useEffect, useState } from 'react'
-import { getEnsAddressQueryOptions, useMutation } from 'wagmi/query'
+import { useMutation } from 'wagmi/query'
 import EscrowFactory from '../contracts/EscrowFactory'
 import { queryClient } from '../queryClient'
-import { Porto } from 'porto/remote'
+import { Porto } from 'porto'
 import { baseSepolia } from 'wagmi/chains'
 import SimpleEscrow from '../contracts/SimpleEscrow'
 
 const theChain = baseSepolia
+
+const portoInstance = Porto.create()
 
 export const wagmiConfig = createConfig({
   chains: [theChain],
@@ -36,6 +37,8 @@ export const wagmiConfig = createConfig({
 export function truncateHexString({ address, length = 6 }: { address: string; length?: number }) {
   return length > 0 ? `${address.slice(0, length)}...${address.slice(-length)}` : address
 }
+
+const EXP1_ADDRESS = '0x29F45fc3eD1d0ffaFb5e2af9Cc6C3AB1555cd5a2'
 
 export const permissions = () =>
   ({
@@ -53,8 +56,8 @@ export const permissions = () =>
       ],
       spend: [
         {
-          period: 'minute',
-          token: EscrowFactory.address as `0x${string}`,
+          period: 'week',
+          token: EXP1_ADDRESS as `0x${string}`,
           limit: Hex.fromNumber(Value.fromEther('1000')),
         },
       ],
@@ -65,7 +68,29 @@ interface Key {
   type: 'p256'
   expiry: number
   publicKey: Hex.Hex
+  privateKey: string
   role: 'session' | 'admin'
+}
+
+async function createkOrGetSessionKey(address: string) {
+  // Generate P-256 key pair
+  const sessionKey = localStorage.getItem(`${address?.toLowerCase()}-session-key`)
+  if (sessionKey) {
+    return Json.parse(sessionKey)
+  }
+
+  const keyPair = await window.crypto.subtle.generateKey(
+    {
+      name: 'ECDSA',
+      namedCurve: 'P-256',
+    },
+    true, // extractable
+    ['sign', 'verify'],
+  )
+
+  localStorage.setItem(`${address?.toLowerCase()}-session-key`, Json.stringify(keyPair))
+
+  return keyPair
 }
 
 export default function Order() {
@@ -103,17 +128,130 @@ export default function Order() {
       }
     }
   }, [address])
+  const connectors = useConnectors()
+  const portoConnector = connectors.find((x) => x.id === 'xyz.ithaca.porto')
+  const grantPermissions = Hooks.useGrantPermissions()
+  const getPermissions = Hooks.usePermissions()
+
+  const handleGrant = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    grantPermissions.mutate({
+      key: serverKey,
+      expiry: permissions().expiry,
+      address,
+      permissions: permissions().permissions,
+      onSuccess: () => {
+        console.log('Permissions granted')
+      },
+      onError: (error: any) => {
+        console.error('Error granting permissions', error)
+      },
+    })
+  }
+  const createEscrowDelegated = () => {
+    if (!serverKey) return
+
+    const call = {
+      to: EscrowFactory.address,
+      data: AbiFunction.encodeData(AbiFunction.fromAbi(EscrowFactory.abi, 'createEscrow'), [address, address, address]),
+    }
+    portoConnector
+      ?.getProvider({
+        chainId: theChain.id,
+      })
+      .then((provider: unknown) => {
+        const castedProvider = provider as ReturnType<typeof Porto.create>['provider']
+        castedProvider.request({
+          method: 'wallet_sendCalls',
+          params: [
+            {
+              calls: [call],
+              capabilities: {
+                permissions: {
+                  calls: [
+                    {
+                      id: '0x17e67ecac2d23af8d3d06cda8643b16c03d189028f95ad218d31e4d795f91473964db6300f0eb82d44b3cecb33cecb6650a261acc9bc1bded4c417da9a5b436f',
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        })
+      })
+  }
+  console.log('getPermissions.data', getPermissions.data)
+
+  const rawConnect = async () => {
+    const connectResult = await portoInstance.provider.request({
+      method: 'wallet_connect',
+    })
+    console.log('connectResult', connectResult)
+  }
+
+  const rawPrepareAndCall = async () => {
+    const call = {
+      to: EscrowFactory.address,
+      data: AbiFunction.encodeData(AbiFunction.fromAbi(EscrowFactory.abi, 'createEscrow'), [address, address, address]),
+    }
+
+    console.log('public key', serverKey?.publicKey)
+    const { digest, ...request } = await portoInstance.provider.request({
+      method: 'wallet_prepareCalls',
+      params: [
+        {
+          from: address,
+          calls: [call],
+          chainId: Hex.fromNumber(baseSepolia.id),
+          key: {
+            publicKey: serverKey?.publicKey,
+            type: 'p256',
+          },
+        },
+      ],
+    })
+
+    console.log('request', digest, request)
+
+    const signature = Signature.toHex(
+      P256.sign({
+        payload: digest,
+        privateKey: serverKey?.publicKey as `0x${string}`,
+      }),
+    )
+
+    const [sendPreparedCallsResult] = await portoInstance.provider.request({
+      method: 'wallet_sendPreparedCalls',
+      params: [
+        {
+          ...request,
+          signature: {
+            value: signature,
+            type: serverKey?.type,
+            publicKey: serverKey?.publicKey,
+          },
+        },
+      ],
+    })
+    console.log('sendPreparedCallsResult', sendPreparedCallsResult)
+  }
 
   return (
     <div>
+      <div>{address}</div>
+      <div>{serverKey?.publicKey}</div>
+      <div>{JSON.stringify(getPermissions.data, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2)}</div>
+      <button onClick={handleGrant}>Grant Permissions</button>
+      <button onClick={createEscrowDelegated}>Create Escrow Delegated</button>
+      <button onClick={rawConnect}>Raw Connect</button>
+      <button onClick={rawPrepareAndCall}>Raw Prepare and Call</button>
       <Header />
       <Cart serverKey={serverKey} />
       <PastOrders />
       {/* <RequestKey /> */}
-      {/* <GrantPermissions /> */}
-      {/* <GetPermissions /> */}
+      <GetPermissions />
       {/* <CreateEscrow /> */}
-      {/* <Events /> */}
+      <Events />
       <Logout />
     </div>
   )
@@ -175,6 +313,11 @@ function Cart({ serverKey }: { serverKey?: Key }) {
   const { address } = useAccount()
   const [cart, setCart] = useState<CartItem[]>([])
   const grantPermissions = Hooks.useGrantPermissions()
+  useEffect(() => {
+    if (grantPermissions.error) {
+      console.error('Error granting permissions', grantPermissions.error)
+    }
+  }, [grantPermissions.error])
 
   const {
     data: callData,
@@ -246,24 +389,41 @@ function Cart({ serverKey }: { serverKey?: Key }) {
   const customerAddress = address
   const arbiterAddress = address
 
-  const handleSubmit = (event: React.FormEvent<any>) => {
-    event.preventDefault()
+  const handleGrantPermissions = () => {
     grantPermissions.mutate({
       key: serverKey,
       expiry: permissions().expiry,
       address,
       permissions: permissions().permissions,
     })
-    // sendCalls({
-    //   calls: [
-    //     {
-    //       functionName: 'createEscrow',
-    //       abi: EscrowFactory.abi,
-    //       to: EscrowFactory.address,
-    //       args: [merchantAddress, customerAddress, arbiterAddress],
-    //     },
-    //   ],
-    // })
+  }
+
+  const handleSubmit = async (event: React.FormEvent<any>) => {
+    event.preventDefault()
+    await handleGrantPermissions()
+    sendCalls({
+      calls: [
+        {
+          functionName: 'createEscrow',
+          abi: EscrowFactory.abi,
+          to: EscrowFactory.address,
+          args: [merchantAddress, customerAddress, arbiterAddress],
+        },
+      ],
+    })
+  }
+
+  const handleDispute = (escrowAddress: string) => {
+    sendCalls({
+      calls: [
+        {
+          functionName: 'dispute',
+          abi: SimpleEscrow.abi,
+          to: escrowAddress,
+          args: [],
+        },
+      ],
+    })
   }
 
   return (
@@ -380,8 +540,6 @@ function PastOrders() {
     }
   }
 
-  console.log('contractValues', contractValues)
-
   const events = ['Dispute', 'DisputeRemoved', 'DisputeResolved', 'Refunded', 'Settled']
   events.forEach((event) => {
     const addresses = queryOrders.data?.map((order) => order.address)
@@ -489,58 +647,6 @@ function Logout() {
     localStorage.removeItem('wagmi.store')
   }
   return <button onClick={clear}>Logout</button>
-}
-
-function GrantPermissions() {
-  const { address } = useAccount()
-  const grantPermissions = Hooks.useGrantPermissions()
-  const [key, setKey] = useState<string>('')
-
-  return (
-    <div>
-      <form
-        onSubmit={async (event) => {
-          event.preventDefault()
-          if (!address) return
-
-          const key = Json.parse((await wagmiConfig.storage?.getItem(`${address.toLowerCase()}-keys`)) || '{}') as Key
-          {
-            JSON.stringify(key)
-          }
-
-          setKey(JSON.stringify(key))
-
-          // if `expry` is present in both `key` and `permissions`, pick the lower value
-          const expiry = Math.min(key.expiry, permissions().expiry)
-
-          grantPermissions.mutate({
-            key,
-            expiry,
-            address,
-            permissions: permissions().permissions,
-          })
-        }}
-      >
-        <button type="submit" style={{ marginBottom: '5px' }} disabled={grantPermissions.status === 'pending'}>
-          {grantPermissions.status === 'pending' ? 'Authorizing…' : 'Grant Permissions'}
-        </button>
-        {grantPermissions.status === 'error' && <p>{grantPermissions.error?.message}</p>}
-      </form>
-      <div>Key: {key}</div>
-      {grantPermissions.data ? (
-        <details>
-          <summary style={{ marginTop: '1rem' }}>
-            Permissions:{' '}
-            {truncateHexString({
-              address: grantPermissions.data?.key.publicKey,
-              length: 12,
-            })}
-          </summary>
-          <pre>{Json.stringify(grantPermissions.data, undefined, 2)}</pre>
-        </details>
-      ) : null}
-    </div>
-  )
 }
 
 function GetPermissions() {
