@@ -11,17 +11,18 @@ import {
   useWatchContractEvent,
   Connector,
   createStorage,
+  useReadContracts,
 } from 'wagmi'
 import { Hex, Json, Value } from 'ox'
 import { useEffect, useState } from 'react'
-import { useMutation } from 'wagmi/query'
+import { getEnsAddressQueryOptions, useMutation } from 'wagmi/query'
 import EscrowFactory from '../contracts/EscrowFactory'
 import { queryClient } from '../queryClient'
 import { Porto } from 'porto/remote'
-import { odysseyDevnet } from 'porto/Chains'
+import { baseSepolia } from 'wagmi/chains'
+import SimpleEscrow from '../contracts/SimpleEscrow'
 
-const theChain = odysseyDevnet
-// const theChain = baseSepolia
+const theChain = baseSepolia
 
 export const wagmiConfig = createConfig({
   chains: [theChain],
@@ -82,13 +83,24 @@ export default function Order() {
       const response = await fetch(`/api/keys/${address.toLowerCase()}?${searchParams.toString()}`)
       const result = await Json.parse(await response.text())
       setServerKey(result)
+      localStorage.setItem(`${address.toLowerCase()}-server-key`, Json.stringify(result))
       return result
     },
   })
 
   useEffect(() => {
     if (address) {
-      requestServerKeyMutation.mutate()
+      if (!serverKey) {
+        const localKey = JSON.parse(localStorage.getItem(`${address.toLowerCase()}-server-key`) || '{}') as
+          | Key
+          | undefined
+        console.log('localKey found', localKey)
+        if (!localKey || !localKey.publicKey) {
+          requestServerKeyMutation.mutate()
+        } else {
+          setServerKey(localKey)
+        }
+      }
     }
   }, [address])
 
@@ -101,9 +113,8 @@ export default function Order() {
       {/* <GrantPermissions /> */}
       {/* <GetPermissions /> */}
       {/* <CreateEscrow /> */}
-      {/* <Account /> */}
       {/* <Events /> */}
-      {/* <Clear /> */}
+      <Logout />
     </div>
   )
 }
@@ -173,8 +184,7 @@ function Cart({ serverKey }: { serverKey?: Key }) {
   } = useSendCalls({
     mutation: {
       onSuccess: (data) => {
-        // 0x8cd4ff1a921f41a5f8962c8072840dcc777acd93612030a6a6a7fc5c65c271e6
-        console.log('onSuccess data', data)
+        console.log('Escrow created', data)
       },
     },
   })
@@ -210,7 +220,6 @@ function Cart({ serverKey }: { serverKey?: Key }) {
     if (cart && cart.length) {
       setCart(cart)
     } else {
-      console.log('setting')
       setCart([
         {
           id: '1',
@@ -267,15 +276,43 @@ function Cart({ serverKey }: { serverKey?: Key }) {
           </li>
         ))}
       </ul>
-      <button disabled={isPending || isConfirming} onClick={handleSubmit}>
-        {isPending ? 'Placing...' : 'Place Order'}
-      </button>
+      {serverKey ? (
+        <button disabled={isPending || isConfirming} onClick={handleSubmit}>
+          {isPending ? 'Placing...' : 'Place Order'}
+        </button>
+      ) : null}
     </div>
   )
 }
 
 function PastOrders() {
   const { address } = useAccount()
+
+  const {
+    data: callData,
+    error,
+    isPending,
+    sendCalls,
+  } = useSendCalls({
+    mutation: {
+      onSuccess: (data) => {
+        console.log('Escrow created', data)
+      },
+    },
+  })
+
+  const handleDispute = (escrowAddress: string) => {
+    sendCalls({
+      calls: [
+        {
+          functionName: 'dispute',
+          abi: SimpleEscrow.abi,
+          to: escrowAddress,
+          args: [],
+        },
+      ],
+    })
+  }
 
   const queryOrders = useQuery<
     {
@@ -295,16 +332,64 @@ function PastOrders() {
     },
   })
 
-  const disputeEscrowMutation = useMutation({
-    mutationFn: async (escrowAddress: string) => {
-      if (!address) return
-      const response = await fetch(`/api/orders/customer/${address}/dispute/${escrowAddress}`, {
-        method: 'POST',
-      })
-      const result = await Json.parse(await response.text())
-      return result
-    },
+  const { data: contracts, refetch: refetchContracts } = useReadContracts({
+    contracts: queryOrders.data
+      ?.map((order) => [
+        {
+          address: order.address as `0x${string}`,
+          abi: SimpleEscrow.abi,
+          functionName: 'isDisputed',
+        },
+        {
+          address: order.address as `0x${string}`,
+          abi: SimpleEscrow.abi,
+          functionName: 'isSettled',
+        },
+      ])
+      .flat(),
   })
+
+  let contractValues: Record<string, { isDisputed: boolean; isSettled: boolean }> = {}
+  const addresses = queryOrders.data?.map((order) => order.address)
+
+  for (let i = 0; i < (contracts?.length || 0); i += 2) {
+    const contract = contracts?.[i]
+    if (!contract || contract.error) {
+      console.error('Error fetching contract', contract?.error)
+    } else {
+      const address = addresses?.[i / 2]!
+      contractValues[address] = {
+        isDisputed: Boolean(contract.result),
+        isSettled: Boolean(contracts?.[i + 1]?.result),
+      }
+    }
+  }
+
+  console.log('contractValues', contractValues)
+
+  const events = ['Dispute', 'DisputeRemoved', 'DisputeResolved', 'Refunded', 'Settled']
+  events.forEach((event) => {
+    const addresses = queryOrders.data?.map((order) => order.address)
+    useWatchContractEvent({
+      enabled: addresses && addresses.length > 0,
+      address: addresses as `0x${string}`[],
+      eventName: event,
+      onLogs: (logs) => {
+        console.log(`Event "${event}" in contract ${logs[0].address}`, logs)
+      },
+    })
+  })
+
+  // const disputeEscrowMutation = useMutation({
+  //   mutationFn: async (escrowAddress: string) => {
+  //     if (!address) return
+  //     const response = await fetch(`/api/orders/customer/${address}/dispute/${escrowAddress}`, {
+  //       method: 'POST',
+  //     })
+  //     const result = await Json.parse(await response.text())
+  //     return result
+  //   },
+  // })
 
   return (
     <div>
@@ -313,7 +398,7 @@ function PastOrders() {
         {queryOrders.data?.map((order) => (
           <div key={order.address}>
             <h3>{order.address}</h3>
-            <button onClick={() => disputeEscrowMutation.mutate(order.address)}>Dispute</button>
+            <button onClick={() => handleDispute(order.address)}>Dispute</button>
             <div>Payer: {order.payer}</div>
             <div>Payee: {order.payee}</div>
             <div>Arbiter: {order.arbiter}</div>
@@ -363,7 +448,7 @@ function RequestKey() {
   )
 }
 
-function Clear() {
+function Logout() {
   const clear = () => {
     queryClient.clear()
     queryClient.resetQueries()
@@ -374,7 +459,7 @@ function Clear() {
     window.sessionStorage.clear()
     localStorage.removeItem('wagmi.store')
   }
-  return <button onClick={clear}>Clear</button>
+  return <button onClick={clear}>Logout</button>
 }
 
 function CreateEscrow() {
@@ -523,31 +608,6 @@ function GetPermissions() {
           <pre>{Json.stringify(getPermissions.data, undefined, 2)}</pre>
         </details>
       ) : null}
-    </div>
-  )
-}
-
-function Account() {
-  const account = useAccount()
-  const disconnect = Hooks.useDisconnect()
-
-  return (
-    <div>
-      <h2>Account</h2>
-
-      <div>
-        account: {account.address}
-        <br />
-        chainId: {account.chainId}
-        <br />
-        status: {account.status}
-      </div>
-
-      {account.status !== 'disconnected' && (
-        <button onClick={() => disconnect.mutate({})} type="button">
-          Disconnect
-        </button>
-      )}
     </div>
   )
 }

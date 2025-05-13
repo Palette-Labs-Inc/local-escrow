@@ -74,6 +74,7 @@ async function updateSinceLastProcessedBlock(ctx: AppContext) {
   const currentBlockNumber = await ctx.client.getBlockNumber()
   let lastProcessedBlock = await ctx.db.selectFrom('lastProcessedBlock').selectAll().executeTakeFirst()
 
+  // This is obvs a hack, we need the whole history somehow.
   const ALCHEMY_MAX_BLOCK_HISTORY = 400
   if (!lastProcessedBlock || lastProcessedBlock.blockNumber < Number(currentBlockNumber) - ALCHEMY_MAX_BLOCK_HISTORY) {
     lastProcessedBlock = {

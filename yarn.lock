@@ -6790,7 +6790,7 @@ __metadata:
     lodash.memoize: "npm:^4.1.2"
     object-hash: "npm:^3.0.0"
     ox: "npm:^0.7.0"
-    porto: "npm:^0.0.21"
+    porto: "npm:^0.0.22"
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
     tailwindcss: "npm:^4.1.6"
@@ -7837,35 +7837,6 @@ __metadata:
   version: 2.1.11
   resolution: "pony-cause@npm:2.1.11"
   checksum: 10c0/d5db6489ec42f8fcce0fd9ad2052be98cd8f63814bf32819694ec1f4c6a01bc3be6181050d83bc79e95272174a5b9776d1c2af1fa79ef51e0ccc0f97c22b1420
-  languageName: node
-  linkType: hard
-
-"porto@npm:^0.0.21":
-  version: 0.0.21
-  resolution: "porto@npm:0.0.21"
-  dependencies:
-    "@sinclair/typebox": "npm:~0.34"
-    idb-keyval: "npm:^6.2.1"
-    mipd: "npm:^0.0.7"
-    ox: "npm:^0.6.12"
-    zustand: "npm:^5.0.1"
-  peerDependencies:
-    "@tanstack/react-query": ">=5.59.0"
-    "@wagmi/core": ">=2.16.3"
-    react: ">=18"
-    typescript: ">=5.4.0"
-    viem: ">=2.26.0"
-    wagmi: ">=2.0.0"
-  peerDependenciesMeta:
-    "@tanstack/react-query":
-      optional: true
-    react:
-      optional: true
-    typescript:
-      optional: true
-    wagmi:
-      optional: true
-  checksum: 10c0/e8459e88e09c8b74ac69885840975721bfe572e81dd1a51d093e598f8d3c890f6c799901a9bed43b99490e81692b6508b39c446340547c6a6acabb657214fb98
   languageName: node
   linkType: hard
 
