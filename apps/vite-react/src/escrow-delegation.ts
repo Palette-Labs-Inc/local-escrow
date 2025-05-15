@@ -18,6 +18,32 @@ export interface CreateEscrowInput {
 // LOW-LEVEL PRIMITIVES ─ each has exactly one reason to change (SRP)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+interface PortoProvider {
+    // minimal subset we need
+    request: (args: { method: string; params?: unknown }) => Promise<unknown>
+  }
+  
+  /**
+   * Returns the *singleton* Porto provider that is already being used by wagmiʼs
+   * `porto()` connector. Creating a fresh instance with `Porto.create()` would
+   * yield an un-connected provider which triggers
+   * "The provider is disconnected from all chains." errors when invoking
+   * delegated methods. By re-using the provider from the existing connector we
+   * guarantee that all RPC requests share the same session & connection state.
+   */
+  async function getProvider(): Promise<PortoProvider> {
+    const connector = config.connectors[0] as unknown as {
+      id: string
+      getProvider: () => Promise<PortoProvider>
+    }
+  
+    if (connector.id !== 'xyz.ithaca.porto')
+      throw new Error('⛔ Porto connector not initialised')
+  
+    // eslint-disable-next-line @typescript-eslint/return-await -- we purposely propagate the promise
+    return connector.getProvider()
+  } 
+  
 /**
  * Returns the (app-managed) signing account derived from the private key.
  * The key is read **once** from the environment – makes DI trivial in tests.
@@ -168,29 +194,3 @@ export async function createEscrow(input: CreateEscrowInput) {
   console.log('Escrow TX id', response[0]?.id)
 })()
 */
-
-interface PortoProvider {
-  // minimal subset we need
-  request: (args: { method: string; params?: unknown }) => Promise<unknown>
-}
-
-/**
- * Returns the *singleton* Porto provider that is already being used by wagmiʼs
- * `porto()` connector. Creating a fresh instance with `Porto.create()` would
- * yield an un-connected provider which triggers
- * "The provider is disconnected from all chains." errors when invoking
- * delegated methods. By re-using the provider from the existing connector we
- * guarantee that all RPC requests share the same session & connection state.
- */
-async function getProvider(): Promise<PortoProvider> {
-  const connector = config.connectors[0] as unknown as {
-    id: string
-    getProvider: () => Promise<PortoProvider>
-  }
-
-  if (connector.id !== 'xyz.ithaca.porto')
-    throw new Error('⛔ Porto connector not initialised')
-
-  // eslint-disable-next-line @typescript-eslint/return-await -- we purposely propagate the promise
-  return connector.getProvider()
-} 

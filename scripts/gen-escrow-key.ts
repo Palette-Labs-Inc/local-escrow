@@ -32,7 +32,7 @@ function main() {
   const { privateKey, address } = generateKey()
   const envPath = join(__dirname, '../apps/vite-react/.env.local')
 
-  // Ensure we don't accidentally overwrite an existing key without notice.
+  // Don't accidentally overwrite an existing key without notice.
   if (existsSync(envPath)) {
     console.error(`\u26A0\uFE0F  ${envPath} already exists. Remove it first if you really want to regenerate the key.`)
     process.exit(1)
