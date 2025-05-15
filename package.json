@@ -13,9 +13,11 @@
   },
   "scripts": {
     "lint": "biome check .",
-    "format": "biome format . --write"
+    "format": "biome format . --write",
+    "generate:key": "tsx scripts/gen-escrow-key.ts"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4"
+    "@biomejs/biome": "^1.9.4",
+    "tsx": "^4.7.0"
   }
 }
