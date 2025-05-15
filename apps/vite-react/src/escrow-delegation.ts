@@ -1,7 +1,7 @@
-import { Porto } from 'porto'
 import { encodeFunctionData, parseEther, toHex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import EscrowFactory from './_generated/EscrowFactory'
+import { config } from './config'
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // TYPES
@@ -12,11 +12,6 @@ export interface CreateEscrowInput {
   payee: `0x${string}`
   storefront: `0x${string}`
   arbiter: `0x${string}`
-}
-
-/** A small wrapper around Porto's provider – keeps things testable & SRP-friendly. */
-function getProvider() {
-  return Porto.create().provider
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,7 +36,7 @@ export function getEscrowSigner() {
  * so that the escrow signer can interact with `EscrowFactory`.
  */
 export async function grantEscrowSignerPermissions() {
-  const provider = getProvider()
+  const provider = await getProvider()
   const signer = getEscrowSigner()
 
   const expiry = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60 // 1 week
@@ -75,7 +70,7 @@ export async function grantEscrowSignerPermissions() {
  * Asks Porto to hash (prepare) the `createEscrow` call for our delegated key.
  */
 async function prepareCreateEscrowCall(input: CreateEscrowInput) {
-  const provider = getProvider()
+  const provider = await getProvider()
   const signer = getEscrowSigner()
 
   const calldata = encodeFunctionData({
@@ -122,7 +117,7 @@ async function executePreparedCalls(
   key: { publicKey: `0x${string}`; type: 'secp256k1' },
   signature: `0x${string}`,
 ) {
-  const provider = getProvider()
+  const provider = await getProvider()
   return provider.request({
     method: 'wallet_sendPreparedCalls',
     params: [
@@ -172,4 +167,30 @@ export async function createEscrow(input: CreateEscrowInput) {
 
   console.log('Escrow TX id', response[0]?.id)
 })()
-*/ 
+*/
+
+interface PortoProvider {
+  // minimal subset we need
+  request: (args: { method: string; params?: unknown }) => Promise<unknown>
+}
+
+/**
+ * Returns the *singleton* Porto provider that is already being used by wagmiʼs
+ * `porto()` connector. Creating a fresh instance with `Porto.create()` would
+ * yield an un-connected provider which triggers
+ * "The provider is disconnected from all chains." errors when invoking
+ * delegated methods. By re-using the provider from the existing connector we
+ * guarantee that all RPC requests share the same session & connection state.
+ */
+async function getProvider(): Promise<PortoProvider> {
+  const connector = config.connectors[0] as unknown as {
+    id: string
+    getProvider: () => Promise<PortoProvider>
+  }
+
+  if (connector.id !== 'xyz.ithaca.porto')
+    throw new Error('⛔ Porto connector not initialised')
+
+  // eslint-disable-next-line @typescript-eslint/return-await -- we purposely propagate the promise
+  return connector.getProvider()
+} 
