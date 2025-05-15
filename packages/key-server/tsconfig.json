@@ -7,6 +7,7 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
+    "experimentalDecorators": true,
     "baseUrl": ".",
     "outDir": "dist",
     "paths": {

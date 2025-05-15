@@ -1,6 +1,7 @@
 {
   "name": "@nosh/key-server",
-  "packageManager": "yarn@4.3.1",
+  "type": "module",
+  "packageManager": "pnpm@10.10.0",
   "scripts": {
     "dev": "tsx watch --clear-screen=false src/index.ts | pino-pretty",
     "typecheck": "tsc --noEmit",
@@ -11,10 +12,10 @@
     "@types/compression": "^1",
     "@types/cors": "^2",
     "@types/express": "^5",
-    "@types/node": "^22.14.0",
+    "@types/node": "catalog:",
     "pino-pretty": "^13.0.0",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.2"
+    "typescript": "catalog:"
   },
   "dependencies": {
     "better-sqlite3": "^11.9.1",
@@ -26,10 +27,10 @@
     "express": "^4.21.2",
     "fake-indexeddb": "^6.0.0",
     "kysely": "^0.27.6",
-    "ox": "^0.7.0",
+    "ox": "catalog:",
     "pino": "^9.6.0",
     "pino-http": "^10.4.0",
-    "porto": "^0.0.22",
-    "viem": "^2.29.0"
+    "porto": "catalog:",
+    "viem": "catalog:"
   }
 }

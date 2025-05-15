@@ -1,0 +1,46 @@
+packages:
+  - "packages/*"
+  - "apps/*"
+  - "examples/*"
+
+# Centralized version specifiers for common dependencies used across the workspace.
+catalog:
+  # Core React stack
+  react: ^19.0.0
+  react-dom: ^19.0.0
+
+  # Tooling & build
+  typescript: ^5.8.3
+  vite: ^6.0.7
+  "@vitejs/plugin-react": ^4.3.4
+
+  # Styling
+  tailwindcss: ^4.1.5
+  "@tailwindcss/vite": ^4.1.5
+  tw-animate-css: ^1.2.8
+
+  # State & networking
+  "@tanstack/react-query": ^5.74.3
+  "@tanstack/react-query-devtools": ^5.74.3
+  "@tanstack/query-sync-storage-persister": ^5.74.3
+  zustand: ^5.0.3
+
+  # Web3
+  wagmi: ^2.15.0
+  "@wagmi/core": ^2.17.0
+  viem: ^2.29.2
+
+  # Utilities
+  ox: "^0.6.12"
+  cva: "npm:class-variance-authority@^0.7.1"
+  sonner: ^2.0.3
+  globals: ^16.0.0
+  "@types/node": ^22.14.1
+  porto: ^0.0.22
+  "@types/react": ^19
+  "@types/react-dom": ^19
+  vite-plugin-mkcert: ^1.17.8
+  "@biomejs/biome": ^1.9.4
+
+overrides:
+  porto: 0.0.22

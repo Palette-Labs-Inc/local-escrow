@@ -8,7 +8,7 @@ import {
   useCallsStatus,
   useSendCalls,
   useWatchContractEvent,
-  Connector,
+  type Connector,
   createStorage,
   useReadContracts,
 } from 'wagmi'

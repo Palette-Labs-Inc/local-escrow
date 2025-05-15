@@ -1,4 +1,4 @@
-import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api'
+import { AtpAgent, type AtpSessionData, type AtpSessionEvent } from '@atproto/api'
 
 let session: AtpSessionData | undefined = undefined
 

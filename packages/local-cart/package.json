@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "biome check .",
     "preview": "vite preview",
     "test": "jest"
   },
@@ -15,20 +15,19 @@
     "@automerge/automerge-repo": "^1.2.1",
     "@automerge/automerge-repo-network-broadcastchannel": "^1.2.1",
     "@automerge/automerge-repo-storage-indexeddb": "^1.2.1",
-    "@tailwindcss/vite": "^4.1.6",
-    "@tanstack/react-query": "^5.76.0",
+    "@tailwindcss/vite": "catalog:",
+    "@tanstack/react-query": "catalog:",
     "lodash.clonedeep": "^4.5.0",
     "lodash.memoize": "^4.1.2",
     "object-hash": "^3.0.0",
-    "ox": "^0.7.0",
-    "porto": "^0.0.22",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tailwindcss": "^4.1.6",
-    "wagmi": "^2.15.2"
+    "ox": "catalog:",
+    "porto": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tailwindcss": "catalog:",
+    "wagmi": "catalog:"
   },
   "devDependencies": {
-    "@eslint/js": "^9.22.0",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.12",
     "@types/lodash.clonedeep": "^4",
@@ -36,16 +35,12 @@
     "@types/object-hash": "^3",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
-    "@vitejs/plugin-react": "^4.3.4",
-    "eslint": "^9.22.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
-    "globals": "^16.0.0",
+    "@vitejs/plugin-react": "catalog:",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.2",
-    "typescript": "~5.7.2",
-    "typescript-eslint": "^8.26.1",
-    "vite": "^6.3.1",
-    "vite-plugin-wasm": "^3.4.1"
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-wasm": "^3.4.1",
+    "@biomejs/biome": "catalog:"
   }
 }

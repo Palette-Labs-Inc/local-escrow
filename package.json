@@ -3,14 +3,19 @@
   "workspaces": {
     "packages": [
       "apps/*",
-      "packages/*"
+      "packages/*",
+      "examples/*"
     ]
   },
-  "scripts": {
-    "typecheck": "turbo typecheck"
+  "packageManager": "pnpm@10.10.0",
+  "engines": {
+    "node": ">=22.1.5"
   },
-  "packageManager": "yarn@4.3.1",
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome format . --write"
+  },
   "devDependencies": {
-    "turbo": "^2.5.0"
+    "@biomejs/biome": "^1.9.4"
   }
 }
