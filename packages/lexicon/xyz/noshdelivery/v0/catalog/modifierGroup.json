@@ -1,0 +1,59 @@
+{
+  "lexicon": 1,
+  "id": "xyz.noshdelivery.v0.catalog.modifierGroup",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "externalId": {
+            "type": "string",
+            "description": "An external ID that can be used to identify this object in an external system such as a warehousing system",
+            "maxLength": 64
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "media": {
+            "type": "ref",
+            "ref": "xyz.noshdelivery.v0.media.defs#mediaView"
+          },
+          "minimumSelection": {
+            "type": "integer",
+            "description": "Minimum number of options that must be selected from this group. 0 means it is optional.",
+            "minimum": 0,
+            "default": 0
+          },
+          "maximumSelection": {
+            "type": "integer",
+            "description": "Maximum number of options that can be selected from this group. 1 means it is a single select (radio-button).",
+            "minimum": 1,
+            "default": 1
+          },
+          "maximumOfEachModifier": {
+            "type": "integer",
+            "description": "Quantity of each modifier you can at most select. For example if you were selecting a dozen donuts with at most 3 of each variety this would be set to 3 with maximum and minimum selections to 1and2. 0 means no limit up to group maximum.",
+            "default": 1
+          },
+          "modifiers": {
+            "type": "array",
+            "description": "Pkeys of xyz.noshdelivery.v0.catalog.modifierGroup records that belong in this item. Ordered in the way they will be presented.",
+            "items": {
+              "type": "string",
+              "format": "tid"
+            }
+          }
+        }
+      }
+    }
+  }
+}

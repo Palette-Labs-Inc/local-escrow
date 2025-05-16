@@ -1,0 +1,36 @@
+{
+  "lexicon": 1,
+  "id": "xyz.noshdelivery.v0.merchant.listLocations",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get all merchants in a group.",
+      "parameters": {
+        "type": "params",
+        "required": ["groupTid"],
+        "properties": {
+          "groupTid": {
+            "type": "string",
+            "format": "tid"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["locations"],
+          "properties": {
+            "locations": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "xyz.noshdelivery.v0.merchant.defs#locationView"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

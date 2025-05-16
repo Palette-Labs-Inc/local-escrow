@@ -1,0 +1,84 @@
+{
+  "lexicon": 1,
+  "id": "xyz.noshdelivery.v0.merchant.defs",
+  "defs": {
+    "aspectRatio": {
+      "type": "object",
+      "description": "width:height represents an aspect ratio. It may be approximate, and may not correspond to absolute dimensions in any given unit.",
+      "required": ["width", "height"],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "groupView": {
+      "type": "object",
+      "description": "A view of a merchant group",
+      "required": ["tid", "uri", "name"],
+      "properties": {
+        "tid": {
+          "type": "string",
+          "format": "tid"
+        },
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "externalId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "logo": {
+          "type": "ref",
+          "ref": "xyz.noshdelivery.v0.media.image#imageView"
+        }
+      }
+    },
+    "locationView": {
+      "type": "object",
+      "description": "A view of a merchant location",
+      "properties": {
+        "tid": {
+          "type": "string",
+          "format": "tid"
+        },
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "externalId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "timezone": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "address": {
+          "type": "ref",
+          "ref": "community.lexicon.location.address"
+        },
+        "coordinates": {
+          "type": "ref",
+          "ref": "community.lexicon.location.geo"
+        }
+      }
+    }
+  }
+}

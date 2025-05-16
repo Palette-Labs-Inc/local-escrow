@@ -1,0 +1,77 @@
+{
+  "lexicon": 1,
+  "id": "xyz.noshdelivery.v0.catalog.getObjects",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get a view of all catalogs with categories and items, but no modifiers. This is a reasonable call only on smaller catalogs such as restaurant menus.",
+      "parameters": {
+        "type": "params",
+        "required": [],
+        "properties": {
+          "objectIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "tid"
+            }
+          },
+          "includeRelationTypes": {
+            "type": "string",
+            "enum": [
+              "catalog",
+              "collection",
+              "item",
+              "modifierGroup",
+              "modifier"
+            ]
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["catalogs", "collections", "items"],
+          "properties": {
+            "catalogs": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "xyz.noshdelivery.v0.catalog.defs#catalogView"
+              }
+            },
+            "collections": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "xyz.noshdelivery.v0.catalog.defs#collectionView"
+              }
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "xyz.noshdelivery.v0.catalog.defs#itemView"
+              }
+            },
+            "modifierGroups": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "xyz.noshdelivery.v0.catalog.defs#modifierGroupView"
+              }
+            },
+            "modifiers": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "xyz.noshdelivery.v0.catalog.defs#modifierView"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

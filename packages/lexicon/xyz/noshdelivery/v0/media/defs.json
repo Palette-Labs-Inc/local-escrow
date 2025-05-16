@@ -1,0 +1,35 @@
+{
+  "lexicon": 1,
+  "id": "xyz.noshdelivery.v0.media.defs",
+  "defs": {
+    "aspectRatio": {
+      "type": "object",
+      "description": "width:height represents an aspect ratio. It may be approximate, and may not correspond to absolute dimensions in any given unit.",
+      "required": [
+        "width",
+        "height"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "mediaView": {
+      "type": "array",
+      "description": "Array of media associated with a merchant or a menu object. The first item in the array is the cover in the UI.",
+      "items": {
+        "type": "union",
+        "refs": [
+          "xyz.noshdelivery.v0.media.image#imageView",
+          "xyz.noshdelivery.v0.media.video#videoView"
+        ]
+      }
+    }
+  }
+}

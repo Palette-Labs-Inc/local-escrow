@@ -1,0 +1,53 @@
+{
+  "lexicon": 1,
+  "id": "xyz.noshdelivery.v0.merchant.location",
+  "description": "A specific physical location for a merchant.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "name",
+          "timezone",
+          "address",
+          "coordinates",
+          "parentGroup"
+        ],
+        "properties": {
+          "parentGroup": {
+            "type": "string",
+            "description": "The uri for the merchant group that this location belongs to.",
+            "format": "at-uri"
+          },
+          "externalId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "address": {
+            "type": "ref",
+            "ref": "community.lexicon.location.address"
+          },
+          "coordinates": {
+            "type": "ref",
+            "ref": "community.lexicon.location.geo"
+          },
+          "media": {
+            "type": "ref",
+            "ref": "xyz.noshdelivery.v0.media.defs#mediaView"
+          }
+        }
+      }
+    }
+  }
+}

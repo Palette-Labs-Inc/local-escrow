@@ -1,0 +1,278 @@
+{
+  "lexicon": 1,
+  "id": "xyz.noshdelivery.v0.catalog.defs",
+  "defs": {
+    "priceMoney": {
+      "type": "object",
+      "required": ["currency", "amount"],
+      "properties": {
+        "currency": {
+          "type": "string",
+          "maxLength": 3
+        },
+        "amount": {
+          "type": "integer",
+          "description": "The amount in the smallest unit of the currency. For example cents.",
+          "minimum": 0
+        }
+      }
+    },
+    "catalogView": {
+      "type": "object",
+      "required": ["uri", "name"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "externalId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "availabilityPeriods": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#availabilityPeriod"
+          }
+        },
+        "childCollections": {
+          "type": "array",
+          "description": "Pkeys of xyz.noshdelivery.v0.catalog.collection records that belong in this catalog. Ordered in the way they will be presented.",
+          "items": {
+            "type": "string",
+            "format": "tid"
+          }
+        }
+      }
+    },
+    "collectionView": {
+      "type": "object",
+      "required": ["uri", "name"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "externalId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "media": {
+          "type": "ref",
+          "ref": "xyz.noshdelivery.v0.media.defs#mediaView"
+        },
+        "childCollections": {
+          "type": "array",
+          "description": "Pkeys of xyz.noshdelivery.v0.catalog.collection records that belong in this catalog. Ordered in the way they will be presented.",
+          "items": {
+            "type": "string",
+            "format": "tid"
+          }
+        },
+        "items": {
+          "type": "array",
+          "description": "Pkeys of xyz.noshdelivery.v0.catalog.item records that belong in this collection. Ordered in the way they will be presented.",
+          "items": {
+            "type": "string",
+            "format": "tid"
+          }
+        }
+      }
+    },
+    "itemView": {
+      "type": "object",
+      "required": ["uri", "name"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "externalId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "suspended": {
+          "type": "boolean",
+          "description": "The item is currently suspended from ordering",
+          "default": false
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "media": {
+          "type": "ref",
+          "ref": "xyz.noshdelivery.v0.media.defs#mediaView"
+        },
+        "priceMoney": {
+          "type": "ref",
+          "ref": "xyz.noshdelivery.v0.catalog.defs#priceMoney"
+        },
+        "modifiersGroups": {
+          "type": "array",
+          "description": "Pkeys of xyz.noshdelivery.v0.catalog.modifierGroup records that belong in this collection. Ordered in the way they will be presented.",
+          "items": {
+            "type": "string",
+            "format": "tid"
+          }
+        }
+      }
+    },
+    "modifierGroupView": {
+      "type": "object",
+      "required": [
+        "uri",
+        "name",
+        "minimumSelection",
+        "maximumSelection",
+        "maximumOfEachModifier"
+      ],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "externalId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "media": {
+          "type": "ref",
+          "ref": "xyz.noshdelivery.v0.media.defs#mediaView"
+        },
+        "minimumSelection": {
+          "type": "integer",
+          "description": "Minimum number of options that must be selected from this group. 0 means it is optional.",
+          "minimum": 0,
+          "default": 0
+        },
+        "maximumSelection": {
+          "type": "integer",
+          "description": "Maximum number of options that can be selected from this group. 1 means it is a single select.",
+          "minimum": 1,
+          "default": 1
+        },
+        "maximumOfEachModifier": {
+          "type": "integer",
+          "description": "Quantity of each modifier you can at most select. For example if you were selecting a dozen donuts with at most 3 of each variety this would be set to 3 with maximum and minimum selections to 1and2. 0 means no limit up to group maximum.",
+          "default": 1
+        },
+        "modifiers": {
+          "type": "array",
+          "description": "Pkeys of xyz.noshdelivery.v0.catalog.modifier records that belong in this collection. Ordered in the way they will be presented.",
+          "items": {
+            "type": "string",
+            "format": "tid"
+          }
+        }
+      }
+    },
+    "modifierView": {
+      "type": "object",
+      "required": ["uri", "name", "priceMoney"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "externalId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "suspended": {
+          "type": "boolean",
+          "description": "The modifier group is currently suspended from ordering",
+          "default": false
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "priceMoney": {
+          "type": "ref",
+          "ref": "#priceMoney"
+        },
+        "childModifierGroups": {
+          "type": "array",
+          "description": "Pkeys of xyz.noshdelivery.v0.catalog.modifierGroup records that are children of this modifier. Ordered in the way they will be presented.",
+          "items": {
+            "type": "string",
+            "format": "tid"
+          }
+        }
+      }
+    },
+    "availabilityPeriod": {
+      "type": "object",
+      "required": ["dayOfWeek", "start", "end"],
+      "properties": {
+        "start": {
+          "type": "ref",
+          "ref": "#availabilityTimeOfDay"
+        },
+        "end": {
+          "type": "ref",
+          "ref": "#availabilityTimeOfDay"
+        },
+        "dayOfWeek": {
+          "type": "string",
+          "enum": [
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+            "SUNDAY"
+          ]
+        }
+      }
+    },
+    "availabilityTimeOfDay": {
+      "type": "object",
+      "required": ["localHour", "localMinute"],
+      "properties": {
+        "localHour": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23
+        },
+        "localMinute": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 59
+        }
+      }
+    }
+  }
+}
