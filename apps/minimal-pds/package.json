@@ -5,7 +5,8 @@
     "dev": "tsx watch --clear-screen=false src/index.ts | pino-pretty",
     "typecheck": "tsc --noEmit",
     "lexgen": "lex gen-server ./src/lexicon ../../packages/lexicon/com/atproto/*/*  --yes",
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "cd node_modules/better-sqlite3 && pnpm run build-release"
   },
   "devDependencies": {
     "@atproto/lex-cli": "^0.7.1",
@@ -28,12 +29,15 @@
     "@atproto/uri": "^0.1.1",
     "@atproto/xrpc-server": "^0.7.15",
     "@ipld/dag-cbor": "^7.0.3",
+    "better-sqlite3": "^11.10.0",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "envalid": "^8.0.0",
     "express": "^4.21.2",
+    "kysely": "^0.28.2",
     "multiformats": "^9.9.0",
+    "node-gyp": "^11.2.0",
     "pino": "^9.6.0",
     "uint8arrays": "3.0.0",
     "varint": "^6.0.0"
