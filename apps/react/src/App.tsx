@@ -45,6 +45,7 @@ const key = () =>
 		},
 	}) as const;
 
+	
 const key2 = () =>
 	({
 		expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
@@ -54,7 +55,7 @@ const key2 = () =>
 					to: EscrowFactory.address,
 				},
 			],
-      spend: [
+      		spend: [
 				{
 					limit: parseEther("50"),
 					period: "minute",
@@ -270,8 +271,6 @@ export function App() {
 		<main>
 			<hr />
 			<Connect />
-			<hr />
-			<GrantMintPermissions />
 			<hr />
 			<GrantCreateEscrowPermissions />
 			<hr />
