@@ -1,14 +1,32 @@
 import { useBalance } from "./hooks.ts";
 import { Hooks } from "porto/wagmi";
 import { exp1Address, exp1Config } from "./contracts/contracts.ts";
-import { useAccount, useConnectors } from "wagmi";
+import { useAccount, useConnectors, type UseReadContractsReturnType } from "wagmi";
 import { truncateHexString } from "./utilities.ts";
 import { type Errors, Json } from "ox";
 import { permissions } from "./constants.ts";
-import { useEffect, useState } from "react";
-import { useCallsStatus, useSendCalls } from "wagmi";
-import { encodeFunctionData, parseEther } from "viem";
+import {
+	createContext,
+	useContext,
+	useEffect,
+	useState,
+	type ReactNode,
+	useMemo,
+} from "react";
+import {
+	useCallsStatus,
+	useSendCalls,
+	useWatchContractEvent,
+	useReadContracts,
+} from "wagmi";
+import {
+	encodeFunctionData,
+	parseEther,
+	type Log,
+	decodeEventLog,
+} from "viem";
 import EscrowFactory from "./contracts/EscrowFactory.ts";
+import SimpleEscrow from "./contracts/SimpleEscrow.ts";
 
 const key = () =>
 	({
@@ -48,20 +66,249 @@ const key2 = () =>
 		},
 	}) as const;
 
+interface EscrowEventInfo {
+	escrowAddress: `0x${string}`;
+	payee: `0x${string}`;
+	storefront: `0x${string}`;
+	arbiter: `0x${string}`;
+	blockNumber?: bigint;
+	transactionHash?: `0x${string}`;
+}
+
+interface EscrowEventsContextValue {
+	events: EscrowEventInfo[];
+	addEvent: (e: EscrowEventInfo) => void;
+}
+
+const EscrowEventsContext = createContext<EscrowEventsContextValue | undefined>(
+	undefined,
+);
+
+function EscrowEventsProvider({ children }: { children: ReactNode }) {
+	const { address: currentUser } = useAccount();
+	const [events, setEvents] = useState<EscrowEventInfo[]>([]);
+
+	const addEvent = (event: EscrowEventInfo) => {
+		// eslint-disable-next-line no-console
+		console.info("[EscrowEventsProvider] addEvent", event);
+		setEvents((prev) => {
+			if (prev.some((e) => e.escrowAddress === event.escrowAddress)) return prev;
+			return [...prev, event];
+		});
+	};
+
+	useWatchContractEvent({
+		address: EscrowFactory.address as `0x${string}`,
+		abi: EscrowFactory.abi,
+		eventName: "EscrowCreated",
+		args: currentUser ? { payee: currentUser } : undefined,
+		listener(logs: readonly Log[]) {
+			// eslint-disable-next-line no-console
+			console.debug("[EscrowEventsProvider] listener received", logs);
+
+			for (const log of logs) {
+				const {
+					escrowAddress,
+					payee,
+					storefront,
+					arbiter,
+				} = (log as unknown as { args: unknown }).args as {
+					escrowAddress: `0x${string}`;
+					payee: `0x${string}`;
+					storefront: `0x${string}`;
+					arbiter: `0x${string}`;
+				};
+
+				console.info("EscrowCreated event", {
+					escrowAddress,
+					payee,
+					storefront,
+					arbiter,
+					txHash: log.transactionHash,
+				});
+
+				addEvent({
+					escrowAddress,
+					payee,
+					storefront,
+					arbiter,
+					blockNumber: log.blockNumber ?? undefined,
+					transactionHash: log.transactionHash as `0x${string}` | undefined,
+				});
+			}
+		},
+	});
+
+	return (
+		<EscrowEventsContext.Provider value={{ events, addEvent }}>
+			{children}
+		</EscrowEventsContext.Provider>
+	);
+}
+
+function useEscrowEvents() {
+	const ctx = useContext(EscrowEventsContext);
+	if (!ctx) throw new Error("useEscrowEvents must be used within EscrowEventsProvider");
+	return ctx;
+}
+
+function EscrowEventsList() {
+	const { events } = useEscrowEvents();
+	if (events.length === 0) {
+		return <h3>No new escrows created</h3>;
+	}
+
+	return (
+		<div>
+			<h3>Escrow Created Events</h3>
+			<ul style={{ listStyleType: "none", padding: 0 }}>
+				{events.map((e) => (
+					<EscrowItem key={e.escrowAddress} event={e} />
+				))}
+			</ul>
+		</div>
+	);
+}
+
+interface EscrowInfo {
+	payer: `0x${string}`;
+	settled: boolean;
+	disputed: boolean;
+	settleTime: bigint;
+}
+
+function EscrowItem({ event }: { event: EscrowEventInfo }) {
+	const { addEvent } = useEscrowEvents();
+	const {
+		escrowAddress,
+		transactionHash,
+		blockNumber,
+		payee,
+		arbiter,
+		storefront,
+	} = event;
+
+  const simpleEscrowContract = {
+    address: escrowAddress,
+    abi: SimpleEscrow.abi,
+  } as const 
+
+	const contracts = [
+		{
+			...simpleEscrowContract,
+			functionName: "payer",
+		},
+		{
+			...simpleEscrowContract,
+			functionName: "isSettled",
+		},
+		{
+			...simpleEscrowContract,
+			functionName: "isDisputed",
+		},
+		{
+			...simpleEscrowContract,
+			functionName: "settleTime",
+		},
+	] as const;
+
+	// Read core state from the cloned escrow contract (typed)
+	const result: UseReadContractsReturnType = useReadContracts({
+		allowFailure: true,
+		contracts,
+		watch: true,
+	});
+
+  const { data, isLoading, isError } = result;
+
+	// Derive typed object once data is available
+	const escrowInfo = useMemo<EscrowInfo | undefined>(() => {
+		if (!data || isLoading || isError) return undefined;
+
+		const [payerRes, settledRes, disputedRes, settleTimeRes] = data.map(
+			(d: { result: unknown }) => d.result,
+		) as [`0x${string}`, boolean, boolean, bigint];
+
+		return {
+			payer: payerRes,
+			settled: settledRes,
+			disputed: disputedRes,
+			settleTime: settleTimeRes,
+		} satisfies EscrowInfo;
+	}, [data, isLoading, isError]);
+
+	// Log contract read results once fetched
+	useEffect(() => {
+		if (data && !isLoading && !isError) {
+			// eslint-disable-next-line no-console
+			console.info("Escrow clone data", escrowAddress, {
+				escrowInfo,
+			});
+		}
+		// We intentionally depend on the loading/error flags and data array.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [data, isLoading, isError, escrowAddress, escrowInfo]);
+
+	// Ensure event present in global context (in case watcher missed it).
+	useEffect(() => {
+		addEvent(event);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [event, addEvent]);
+
+	return (
+		<li
+			style={{ marginBottom: "1rem" }}
+			key={transactionHash ?? `${escrowAddress}-${blockNumber?.toString()}`}
+		>
+			<p style={{ margin: 0 }}>
+				Escrow {truncateHexString({ address: escrowAddress, length: 12 })} created
+				(tx:{" "}
+				<a
+					href={`https://sepolia.basescan.org/tx/${transactionHash}`}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					{transactionHash?.slice(0, 10)}...
+				</a>
+				)
+			</p>
+
+			{isLoading && <small>Loading contract details…</small>}
+			{isError && <small>Failed to load contract details.</small>}
+
+			{escrowInfo && (
+				<ul style={{ listStyleType: "square", paddingLeft: "1.2rem", margin: 0 }}>
+					<li>Payee: {payee}</li>
+					<li>Payer: {escrowInfo.payer}</li>
+					<li>Arbiter: {arbiter}</li>
+					<li>Storefront: {storefront}</li>
+					<li>Settled: {String(escrowInfo.settled)}</li>
+					<li>Disputed: {String(escrowInfo.disputed)}</li>
+					<li>Settle Deadline: {Number(escrowInfo.settleTime)}</li>
+				</ul>
+			)}
+		</li>
+	);
+}
+
 export function App() {
 	return (
-		<main>
-			<hr />
-			<Connect />
-			<hr />
-			<GrantMintPermissions />
-			<hr />
-			<GrantCreateEscrowPermissions />
-			<hr />
-			<Mint />
-			<hr />
-			<CreateEscrow />
-		</main>
+		<EscrowEventsProvider>
+			<main>
+				<hr />
+				<Connect />
+				<hr />
+				<GrantMintPermissions />
+				<hr />
+				<GrantCreateEscrowPermissions />
+				<hr />
+				<Mint />
+				<hr />
+				<CreateEscrow />
+				<hr />
+				<EscrowEventsList />
+			</main>
+		</EscrowEventsProvider>
 	);
 }
 
@@ -110,7 +357,9 @@ function Connect() {
 					<button
 						key={connector?.uid}
 						disabled={connect.status === "pending"}
-						onClick={async () =>
+						onClick={async () => {
+							// eslint-disable-next-line no-console
+							console.info("[Connect] Login clicked");
 							disconnectFromAll().then(() =>
 								connect.mutateAsync({
 									connector,
@@ -118,15 +367,17 @@ function Connect() {
 										? permissions()
 										: undefined,
 								}),
-							)
-						}
+							);
+						}}
 						type="button"
 					>
 						Login
 					</button>
 					<button
 						disabled={connect.status === "pending"}
-						onClick={async () =>
+						onClick={async () => {
+							// eslint-disable-next-line no-console
+							console.info("[Connect] Register clicked");
 							disconnectFromAll().then(() => {
 								connect.mutate({
 									connector,
@@ -135,8 +386,8 @@ function Connect() {
 										? permissions()
 										: undefined,
 								});
-							})
-						}
+							});
+						}}
 						type="button"
 					>
 						Register
@@ -255,6 +506,19 @@ function Mint() {
 		}
 	}, [callsStatusData]);
 
+	// Log mutation responses
+	useEffect(() => {
+		if (id) {
+			console.info("[Mint] useSendCalls response", id);
+		}
+	}, [id]);
+
+	useEffect(() => {
+		if (error) {
+			console.error("[Mint] Error", error);
+		}
+	}, [error]);
+
 	if (!address) return null;
 
 	return (
@@ -339,13 +603,15 @@ function CreateEscrow() {
 		},
 	});
 
+	const { addEvent } = useEscrowEvents();
+
 	const [transactions, setTransactions] = useState<Set<string>>(new Set());
 
 	useEffect(() => {
 		if (callsStatusData?.status !== "success") return;
 		const receipts = (
 			callsStatusData as {
-				receipts?: { transactionHash?: string }[];
+				receipts?: { transactionHash?: string; logs?: Log[] }[];
 			} | undefined
 		)?.receipts ?? [];
 		const hashes = receipts
@@ -354,7 +620,67 @@ function CreateEscrow() {
 		if (hashes.length) {
 			setTransactions((prev) => new Set([...prev, ...hashes]));
 		}
+
+		for (const receipt of receipts) {
+			for (const log of receipt.logs ?? []) {
+				if (
+					log.address.toLowerCase() !== EscrowFactory.address.toLowerCase()
+				)
+					continue;
+
+				try {
+					const { args } = decodeEventLog({
+						abi: EscrowFactory.abi,
+						data: log.data,
+						topics: log.topics,
+					});
+					// viem may return args as an array or object; we assume object here.
+					// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+					const argObj = args as unknown as Record<string, unknown>;
+					const escrowAddress = argObj.escrowAddress as `0x${string}`;
+					const payee = argObj.payee as `0x${string}`;
+					const storefront = argObj.storefront as `0x${string}`;
+					const arbiter = argObj.arbiter as `0x${string}`;
+
+					addEvent({
+						escrowAddress,
+						payee,
+						storefront,
+						arbiter,
+						blockNumber: log.blockNumber ?? undefined,
+						transactionHash: receipt.transactionHash as `0x${string}`,
+					});
+
+					console.info("[CreateEscrow] Decoded EscrowCreated from receipt", {
+						escrowAddress,
+						payee,
+						storefront,
+						arbiter,
+					});
+				} catch {
+					// ignore decoding errors
+				}
+			}
+		}
+	}, [callsStatusData, addEvent]);
+
+	// Track callsStatusData updates
+	useEffect(() => {
+		if (callsStatusData?.status !== "success") return;
+		// eslint-disable-next-line no-console
+		console.info("[CreateEscrow] callsStatusData", callsStatusData);
 	}, [callsStatusData]);
+
+	// Additional log for each status change
+	useEffect(() => {
+		if (!id?.id) return;
+		// eslint-disable-next-line no-console
+		console.debug("[CreateEscrow] Status update", {
+			id: id.id,
+			isConfirming,
+			isConfirmed,
+		});
+	}, [id?.id, isConfirming, isConfirmed]);
 
 	if (!address) return null;
 
@@ -370,6 +696,8 @@ function CreateEscrow() {
 			<form
 				onSubmit={(event) => {
 					event.preventDefault();
+					// eslint-disable-next-line no-console
+					console.info("[CreateEscrow] Submitting sendCalls", { data: calldata });
 					sendCalls({
 						calls: [
 							{

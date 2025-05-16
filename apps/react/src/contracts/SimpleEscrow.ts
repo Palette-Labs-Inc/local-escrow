@@ -362,5 +362,5 @@ const SimpleEscrow = {
       type: 'receive',
     },
   ] as const,
-}
+} as const;
 export default SimpleEscrow

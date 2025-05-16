@@ -106,5 +106,5 @@ const EscrowFactory = {
       "type": "function"
     }
   ]
-}
+} as const;
 export default EscrowFactory
