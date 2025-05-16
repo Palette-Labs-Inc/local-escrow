@@ -1,7 +1,7 @@
 import { Hex, Value, P256, PublicKey } from 'ox'
 // import { exp1Address } from './contracts/contracts.ts'
 import EscrowFactory from './contracts/EscrowFactory.ts'
-import { exp1Config } from './contracts/contracts.ts'
+import { exp1Config as ExperimentERC20 } from './contracts/contracts.ts'
 
 // Base Sepolia chain ID (decimal & hex)
 export const CHAIN_ID_DEC = 84_532
@@ -9,6 +9,7 @@ export const CHAIN_ID_HEX = Hex.fromNumber(CHAIN_ID_DEC)
 
 export const permissions = () =>
 	({
+		chainId: CHAIN_ID_HEX,
 		expiry: Math.floor(Date.now() / 1_000) + 60 * 60 * 24 * 30, // 30 days
 		key: {
 			publicKey: getEscrowPublicKey(),
@@ -17,18 +18,26 @@ export const permissions = () =>
 		permissions: {
 			calls: [
 				{
+					signature: "createEscrow(address,address,address)",
+					to: EscrowFactory.address as `0x${string}`,
+				},
+				{
 					signature: 'approve(address,uint256)',
-					to: exp1Config.address,
+					to: ExperimentERC20.address as `0x${string}`,
 				},
 				{
 					signature: 'transfer(address,uint256)',
-					to: exp1Config.address,
+					to: ExperimentERC20.address as `0x${string}`,
 				},
 			],
 			spend: [
 				{
+					period: 'day',
+					limit: Hex.fromNumber(Value.fromEther('0.01')),
+				},
+				{
 					period: 'minute',
-					token: exp1Config.address,
+					token: ExperimentERC20.address as `0x${string}`,
 					limit: Hex.fromNumber(Value.fromEther('1000')),
 				},
 			],

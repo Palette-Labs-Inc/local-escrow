@@ -1,8 +1,8 @@
 import { encodeFunctionData } from 'viem'
 import EscrowFactory from './contracts/EscrowFactory'
-import { wagmiConfig } from './config'
+import { getProvider, wagmiConfig } from './config'
 import { Hex, P256, Signature } from 'ox'
-import { getEscrowPrivateKey, getEscrowPublicKey, permissions } from './constants'
+import { getEscrowPrivateKey, getEscrowPublicKey } from './constants'
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,16 +41,6 @@ async function prepareCreateEscrowCall(input: CreateEscrowInput) {
             data: calldata,
           },
         ],
-        capabilities: {
-          authorizeKeys: [
-            {
-              publicKey,
-              type: 'p256',
-              expiry: permissions().expiry,
-              permissions: permissions().permissions,
-            },
-          ],
-        },
         key: {
           publicKey,
           type: 'p256',

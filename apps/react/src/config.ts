@@ -12,13 +12,14 @@ import { Mode } from 'porto'
 
 export const wagmiConfig = createConfig({
   chains: [baseSepolia],
-  connectors: [porto({
-    chains: [baseSepolia],
-    mode: Mode.dialog(),
-    transports: {
-      [baseSepolia.id]: http(),
-    },
-  })],
+  connectors: [
+    porto({
+      mode: Mode.dialog({
+        host: import.meta.env.VITE_DIALOG_HOST,
+      }),
+    }),
+  ],
+  storage: createStorage({ storage: localStorage }),
   transports: {
     [baseSepolia.id]: http(),
   },
