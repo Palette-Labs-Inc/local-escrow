@@ -188,26 +188,25 @@ function EscrowItem({ event }: { event: EscrowEventInfo }) {
 		storefront,
 	} = event;
 
-  const simpleEscrowContract = {
-    address: escrowAddress,
-    abi: SimpleEscrow.abi,
-  } as const 
-
 	const contracts = [
 		{
-			...simpleEscrowContract,
+			address: escrowAddress,
+      abi: SimpleEscrow.abi,
 			functionName: "payer",
 		},
 		{
-			...simpleEscrowContract,
+			address: escrowAddress,
+      abi: SimpleEscrow.abi,
 			functionName: "isSettled",
 		},
 		{
-			...simpleEscrowContract,
+			  address: escrowAddress,
+      abi: SimpleEscrow.abi,
 			functionName: "isDisputed",
 		},
 		{
-			...simpleEscrowContract,
+			address: escrowAddress,
+      abi: SimpleEscrow.abi,
 			functionName: "settleTime",
 		},
 	] as const;
@@ -221,7 +220,6 @@ function EscrowItem({ event }: { event: EscrowEventInfo }) {
 
   const { data, isLoading, isError } = result;
 
-	// Derive typed object once data is available
 	const escrowInfo = useMemo<EscrowInfo | undefined>(() => {
 		if (!data || isLoading || isError) return undefined;
 
