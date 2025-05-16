@@ -11,10 +11,10 @@ export const permissions = () =>
 	({
 		chainId: CHAIN_ID_HEX,
 		expiry: Math.floor(Date.now() / 1_000) + 60 * 60 * 24 * 30, // 30 days
-		key: {
+		/*key: {
 			publicKey: getEscrowPublicKey(),
 			type: 'p256' as const,
-		},
+		},*/
 		permissions: {
 			calls: [
 				{

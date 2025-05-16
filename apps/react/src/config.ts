@@ -3,12 +3,7 @@ import { createConfig, createStorage, http } from 'wagmi'
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
 import { porto } from 'porto/wagmi'
 import { Mode } from 'porto'
-
-// export const porto = Porto.create({ mode: Mode.dialog({ host: 'http://localhost:6901/'})})
-
-// Initialise Porto connector with an embedded dialog so the provider is
-// injected as soon as the page loads. This prevents Wallet-Standard probe
-// calls (e.g. `wallet_getCapabilities`) from leaking to the chain RPC node.
+import { storage } from './store/storage'
 
 export const wagmiConfig = createConfig({
   chains: [baseSepolia],
@@ -19,7 +14,7 @@ export const wagmiConfig = createConfig({
       }),
     }),
   ],
-  storage: createStorage({ storage: localStorage }),
+  storage: createStorage({ storage: storage }),
   transports: {
     [baseSepolia.id]: http(),
   },

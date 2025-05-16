@@ -125,10 +125,6 @@ function EscrowEventsList() {
 	
 	useWatchEscrowEvents();
 
-	if (!address) {
-		return <h3>Please connect your wallet to view escrows</h3>;
-	}
-	
 	if (events.length === 0) {
 		return <h3>No new escrows created</h3>;
 	}
@@ -284,7 +280,7 @@ export function App() {
 }
 
 function Connect() {
-	const label = `_exp-0003-${Math.floor(Date.now() / 1_000)}`;
+	const label = `local-protocol-${Math.floor(Date.now() / 1_000)}`;
 	const [grantPermissions, setGrantPermissions] = useState<boolean>(true);
 
 	const connectors = useConnectors();
@@ -489,8 +485,6 @@ function Mint() {
 			console.error("[Mint] Error", error);
 		}
 	}, [error]);
-
-	if (!address) return null;
 
 	return (
 		<div>
