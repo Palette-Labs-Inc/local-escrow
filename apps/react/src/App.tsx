@@ -1,7 +1,7 @@
 import { useBalance } from "./hooks.ts";
 import { Hooks } from "porto/wagmi";
 import { exp1Address, exp1Config } from "./contracts/contracts.ts";
-import { useAccount, useConnectors, type UseReadContractsReturnType } from "wagmi";
+import { useAccount, useConnectors } from "wagmi";
 import { truncateHexString } from "./utilities.ts";
 import { type Errors, Json } from "ox";
 import { permissions } from "./constants.ts";
@@ -76,7 +76,7 @@ function useWatchEscrowEvents() {
     abi: EscrowFactory.abi,
     eventName: "EscrowCreated",
     args: currentUser ? { payee: currentUser } : undefined,
-    listener(logs: readonly Log[]) {
+    onLogs: (logs: readonly Log[]) => {
       if (!currentUser) return;
       
       // eslint-disable-next-line no-console
@@ -188,10 +188,9 @@ function EscrowItem({ event }: { event: EscrowEventInfo }) {
 	] as const;
 
 	// Read core state from the cloned escrow contract (typed)
-	const result: UseReadContractsReturnType<typeof contracts> = useReadContracts<typeof contracts>({
+	const result = useReadContracts<typeof contracts>({
 		allowFailure: true,
 		contracts,
-		watch: true,
 	});
 
   const { data, isLoading, isError } = result;
@@ -200,7 +199,7 @@ function EscrowItem({ event }: { event: EscrowEventInfo }) {
 		if (!data || isLoading || isError) return undefined;
 
 		const [payerRes, settledRes, disputedRes, settleTimeRes] = data.map(
-			(d: { result: unknown }) => d.result,
+			(d) => (d as { result: unknown }).result,
 		) as [`0x${string}`, boolean, boolean, bigint];
 
 		return {
@@ -454,8 +453,8 @@ function Mint() {
 		id: id?.id as string,
 		query: {
 			enabled: !!id,
-			refetchInterval: ({ state }: { state: { data: { status: string } } }) => {
-				if (state.data?.status === "success") return false;
+			refetchInterval: (query) => {
+				if (query.state.data?.status === "success") return false;
 				return 1_000;
 			},
 		},
@@ -570,8 +569,8 @@ function CreateEscrow() {
 		id: id?.id as string,
 		query: {
 			enabled: !!id,
-			refetchInterval: ({ state }: { state: { data: { status: string } } }) => {
-				if (state.data?.status === "success") return false;
+			refetchInterval: (query) => {
+				if (query.state.data?.status === "success") return false;
 				return 1_000;
 			},
 		},
