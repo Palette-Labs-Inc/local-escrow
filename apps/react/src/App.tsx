@@ -222,7 +222,12 @@ function Mint() {
 	const { address } = useAccount();
 
 	const { data: id, error, isPending, sendCalls } = useSendCalls();
-	const { isLoading: isConfirming, isSuccess: isConfirmed } = useCallsStatus({
+	// Grab full status response so we can extract on-chain receipts
+	const {
+		data: callsStatusData,
+		isLoading: isConfirming,
+		isSuccess: isConfirmed,
+	} = useCallsStatus({
 		id: id?.id as string,
 		query: {
 			enabled: !!id,
@@ -236,10 +241,21 @@ function Mint() {
 	const balance = useBalance();
 	const [transactions, setTransactions] = useState<Set<string>>(new Set());
 
+	// Once the bundler reports success, extract the real transaction hash(es)
 	useEffect(() => {
-		const txId = typeof id === "string" ? id : id?.id;
-		if (txId) setTransactions((prev) => new Set([...prev, txId]));
-	}, [id]);
+		if (callsStatusData?.status !== "success") return;
+		const receipts = (
+			callsStatusData as {
+				receipts?: { transactionHash?: string }[];
+			} | undefined
+		)?.receipts ?? [];
+		const hashes = receipts
+			.map((r) => r.transactionHash)
+			.filter((h): h is string => Boolean(h));
+		if (hashes.length) {
+			setTransactions((prev) => new Set([...prev, ...hashes]));
+		}
+	}, [callsStatusData]);
 
 	if (!address) return null;
 
@@ -297,7 +313,12 @@ function CreateEscrow() {
 	const { address } = useAccount();
 
 	const { data: id, error, isPending, sendCalls } = useSendCalls();
-	const { isLoading: isConfirming, isSuccess: isConfirmed } = useCallsStatus({
+	// Grab full status response so we can extract on-chain receipts
+	const {
+		data: callsStatusData,
+		isLoading: isConfirming,
+		isSuccess: isConfirmed,
+	} = useCallsStatus({
 		id: id?.id as string,
 		query: {
 			enabled: !!id,
@@ -310,18 +331,29 @@ function CreateEscrow() {
 
 	const [transactions, setTransactions] = useState<Set<string>>(new Set());
 
+	// Once the bundler reports success, extract the real transaction hash(es)
 	useEffect(() => {
-		const txId = typeof id === "string" ? id : id?.id;
-		if (txId) setTransactions((prev) => new Set([...prev, txId]));
-	}, [id]);
+		if (callsStatusData?.status !== "success") return;
+		const receipts = (
+			callsStatusData as {
+				receipts?: { transactionHash?: string }[];
+			} | undefined
+		)?.receipts ?? [];
+		const hashes = receipts
+			.map((r) => r.transactionHash)
+			.filter((h): h is string => Boolean(h));
+		if (hashes.length) {
+			setTransactions((prev) => new Set([...prev, ...hashes]));
+		}
+	}, [callsStatusData]);
 
 	if (!address) return null;
 
-  const calldata = encodeFunctionData({
-    abi: EscrowFactory.abi,
-    functionName: 'createEscrow',
-    args: [address, address, address],
-  })
+	const calldata = encodeFunctionData({
+		abi: EscrowFactory.abi,
+		functionName: "createEscrow",
+		args: [address, address, address],
+	});
 
 	return (
 		<div>
