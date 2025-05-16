@@ -222,7 +222,6 @@ function Mint() {
 	const { address } = useAccount();
 
 	const { data: id, error, isPending, sendCalls } = useSendCalls();
-	// Grab full status response so we can extract on-chain receipts
 	const {
 		data: callsStatusData,
 		isLoading: isConfirming,
@@ -241,7 +240,6 @@ function Mint() {
 	const balance = useBalance();
 	const [transactions, setTransactions] = useState<Set<string>>(new Set());
 
-	// Once the bundler reports success, extract the real transaction hash(es)
 	useEffect(() => {
 		if (callsStatusData?.status !== "success") return;
 		const receipts = (
@@ -305,6 +303,19 @@ function Mint() {
 					Error: {(error as Errors.BaseError).shortMessage || error.message}
 				</div>
 			)}
+			{id && (
+				<details style={{ marginTop: "5px" }}>
+					<summary>
+						<span style={{ marginRight: "8px" }}>useSendCalls response:</span>
+						{truncateHexString({
+							address:
+								typeof id === "string" ? id : (id as { id: string }).id,
+							length: 12,
+						})}
+					</summary>
+					<pre>{Json.stringify(id, undefined, 2)}</pre>
+				</details>
+			)}
 		</div>
 	);
 }
@@ -313,7 +324,6 @@ function CreateEscrow() {
 	const { address } = useAccount();
 
 	const { data: id, error, isPending, sendCalls } = useSendCalls();
-	// Grab full status response so we can extract on-chain receipts
 	const {
 		data: callsStatusData,
 		isLoading: isConfirming,
@@ -331,7 +341,6 @@ function CreateEscrow() {
 
 	const [transactions, setTransactions] = useState<Set<string>>(new Set());
 
-	// Once the bundler reports success, extract the real transaction hash(es)
 	useEffect(() => {
 		if (callsStatusData?.status !== "success") return;
 		const receipts = (
@@ -398,6 +407,19 @@ function CreateEscrow() {
 				<div>
 					Error: {(error as Errors.BaseError).shortMessage || error.message}
 				</div>
+			)}
+			{id && (
+				<details style={{ marginTop: "5px" }}>
+					<summary>
+						<span style={{ marginRight: "8px" }}>useSendCalls response:</span>
+						{truncateHexString({
+							address:
+								typeof id === "string" ? id : (id as { id: string }).id,
+							length: 12,
+						})}
+					</summary>
+					<pre>{Json.stringify(id, undefined, 2)}</pre>
+				</details>
 			)}
 		</div>
 	);
