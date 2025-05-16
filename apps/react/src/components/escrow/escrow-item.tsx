@@ -22,12 +22,51 @@ interface EscrowInfo {
   settleTime: bigint;
 }
 
+// -----------------------------------------------------------------------------
+// Helper – clickable, styled badge that shows a truncated address and links to
+// the Base Sepolia explorer.
+// -----------------------------------------------------------------------------
+
+interface AddressBadgeProps {
+  address: `0x${string}`;
+  /**
+   * Number of hex characters (without 0x) to show at the start/end of the
+   * truncated string. Defaults to 6 which renders e.g. `0x123456…cdefab`.
+   */
+  length?: number;
+}
+
+function AddressBadge({ address, length = 6 }: AddressBadgeProps) {
+  const truncated = truncateHexString({ address, length });
+
+  const style: React.CSSProperties = {
+    display: "inline-block",
+    padding: "0.15rem 0.45rem",
+    borderRadius: 6,
+    backgroundColor: "#e6f0ff",
+    color: "#1a5cff",
+    fontWeight: 500,
+    fontSize: "0.9em",
+    textDecoration: "none",
+  };
+
+  return (
+    <a
+      href={`https://sepolia.basescan.org/address/${address}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={style}
+    >
+      {truncated}
+    </a>
+  );
+}
+
 export function EscrowItem({ event }: { event: EscrowEventInfo }) {
   const { address: currentUser } = useAccount();
   const {
     escrowAddress,
     transactionHash,
-    blockNumber,
     payee,
     arbiter,
     storefront,
@@ -73,7 +112,6 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
     query: { enabled: !!currentUser, refetchInterval: 4_000 },
   });
 
-  const balanceFormatted = Value.formatEther(balanceRaw ?? 0n);
   const amountWei = amount ? parseEther(amount) : 0n;
   const isAmountInvalid = !amount || amountWei === 0n || (balanceRaw ?? 0n) < amountWei;
 
@@ -112,7 +150,7 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
     >
       <header style={{ marginBottom: "0.5rem" }}>
         <strong>Escrow </strong>
-        {truncateHexString({ address: escrowAddress, length: 10 })}
+        <AddressBadge address={escrowAddress} length={10} />
       </header>
 
       {isLoading && <small>Fetching escrow state…</small>}
@@ -120,10 +158,18 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
 
       {escrowInfo && (
         <ul style={{ listStyleType: "none", padding: 0 }}>
-          <li>Payee: {payee}</li>
-          <li>Payer: {escrowInfo.payer}</li>
-          <li>Arbiter: {arbiter}</li>
-          <li>Storefront: {storefront}</li>
+          <li>
+            Payee: <AddressBadge address={payee} />
+          </li>
+          <li>
+            Payer: <AddressBadge address={escrowInfo.payer} />
+          </li>
+          <li>
+            Arbiter: <AddressBadge address={arbiter} />
+          </li>
+          <li>
+            Storefront: <AddressBadge address={storefront} />
+          </li>
           <li>Settled: {String(escrowInfo.settled)}</li>
           <li>Disputed: {String(escrowInfo.disputed)}</li>
           <li>Deadline: {Number(escrowInfo.settleTime)}</li>
@@ -197,9 +243,26 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
                 style={buttonStyle}
                 disabled={isPending || isAmountInvalid}
                 onClick={() => {
+                  /*
+                   * Two-step flow:
+                   * 1) transfer EXP from the connected wallet into the escrow contract so that
+                   *    SimpleEscrow holds the funds.
+                   * 2) invoke `settle` on the escrow which will forward the just-deposited
+                   *    tokens to the payee.
+                   *
+                   * Both calls are bundled in a single request via `sendCalls`.
+                   */
                   sendCalls({
                     calls: [
                       {
+                        // Step 1 – move tokens into escrow
+                        to: exp1Address,
+                        abi: exp1Abi,
+                        functionName: "transfer",
+                        args: [escrowAddress, amountWei],
+                      },
+                      {
+                        // Step 2 – settle escrow (will transfer tokens from escrow → payee)
                         to: escrowAddress,
                         abi: SimpleEscrow.abi,
                         functionName: "settle",
