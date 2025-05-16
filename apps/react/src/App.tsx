@@ -25,6 +25,7 @@ import {
 import EscrowFactory from "./contracts/EscrowFactory.ts";
 import SimpleEscrow from "./contracts/SimpleEscrow.ts";
 import { useEscrowStore, type EscrowEventInfo } from "./store/escrow-store.ts";
+import { EscrowList } from "./components/escrow/escrow-list.tsx";
 
 const key = () =>
 	({
@@ -274,7 +275,7 @@ export function App() {
 			<hr />
 			<CreateEscrow />
 			<hr />
-			<EscrowEventsList />
+			<EscrowList />
 		</main>
 	);
 }
@@ -485,6 +486,8 @@ function Mint() {
 			console.error("[Mint] Error", error);
 		}
 	}, [error]);
+
+	if (!address) return null;
 
 	return (
 		<div>
