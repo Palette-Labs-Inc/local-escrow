@@ -1,3 +1,5 @@
+import type { Abi } from "viem"
+
 const SimpleEscrow = {
   contractName: 'SimpleEscrow',
   address: '0xF6956080C043F1A868F545633ECdFA2157ccEBbD',
@@ -361,6 +363,6 @@ const SimpleEscrow = {
       stateMutability: 'payable',
       type: 'receive',
     },
-  ] as const,
-} as const;
+  ] as const satisfies Abi,
+} as const
 export default SimpleEscrow

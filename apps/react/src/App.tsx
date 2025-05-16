@@ -6,11 +6,8 @@ import { truncateHexString } from "./utilities.ts";
 import { type Errors, Json } from "ox";
 import { permissions } from "./constants.ts";
 import {
-	createContext,
-	useContext,
 	useEffect,
 	useState,
-	type ReactNode,
 	useMemo,
 } from "react";
 import {
@@ -27,6 +24,7 @@ import {
 } from "viem";
 import EscrowFactory from "./contracts/EscrowFactory.ts";
 import SimpleEscrow from "./contracts/SimpleEscrow.ts";
+import { useEscrowStore, type EscrowEventInfo } from "./store/escrow-store.ts";
 
 const key = () =>
 	({
@@ -66,94 +64,70 @@ const key2 = () =>
 		},
 	}) as const;
 
-interface EscrowEventInfo {
-	escrowAddress: `0x${string}`;
-	payee: `0x${string}`;
-	storefront: `0x${string}`;
-	arbiter: `0x${string}`;
-	blockNumber?: bigint;
-	transactionHash?: `0x${string}`;
-}
+/**
+ * Hook to watch for EscrowCreated events and store them in the Zustand store
+ */
+function useWatchEscrowEvents() {
+  const { address: currentUser } = useAccount();
+  const { addEvent } = useEscrowStore();
+  
+  useWatchContractEvent({
+    address: EscrowFactory.address as `0x${string}`,
+    abi: EscrowFactory.abi,
+    eventName: "EscrowCreated",
+    args: currentUser ? { payee: currentUser } : undefined,
+    listener(logs: readonly Log[]) {
+      if (!currentUser) return;
+      
+      // eslint-disable-next-line no-console
+      console.debug("[useWatchEscrowEvents] listener received", logs);
 
-interface EscrowEventsContextValue {
-	events: EscrowEventInfo[];
-	addEvent: (e: EscrowEventInfo) => void;
-}
+      for (const log of logs) {
+        const {
+          escrowAddress,
+          payee,
+          storefront,
+          arbiter,
+        } = (log as unknown as { args: unknown }).args as {
+          escrowAddress: `0x${string}`;
+          payee: `0x${string}`;
+          storefront: `0x${string}`;
+          arbiter: `0x${string}`;
+        };
 
-const EscrowEventsContext = createContext<EscrowEventsContextValue | undefined>(
-	undefined,
-);
+        console.info("EscrowCreated event", {
+          escrowAddress,
+          payee,
+          storefront,
+          arbiter,
+          txHash: log.transactionHash,
+        });
 
-function EscrowEventsProvider({ children }: { children: ReactNode }) {
-	const { address: currentUser } = useAccount();
-	const [events, setEvents] = useState<EscrowEventInfo[]>([]);
-
-	const addEvent = (event: EscrowEventInfo) => {
-		// eslint-disable-next-line no-console
-		console.info("[EscrowEventsProvider] addEvent", event);
-		setEvents((prev) => {
-			if (prev.some((e) => e.escrowAddress === event.escrowAddress)) return prev;
-			return [...prev, event];
-		});
-	};
-
-	useWatchContractEvent({
-		address: EscrowFactory.address as `0x${string}`,
-		abi: EscrowFactory.abi,
-		eventName: "EscrowCreated",
-		args: currentUser ? { payee: currentUser } : undefined,
-		listener(logs: readonly Log[]) {
-			// eslint-disable-next-line no-console
-			console.debug("[EscrowEventsProvider] listener received", logs);
-
-			for (const log of logs) {
-				const {
-					escrowAddress,
-					payee,
-					storefront,
-					arbiter,
-				} = (log as unknown as { args: unknown }).args as {
-					escrowAddress: `0x${string}`;
-					payee: `0x${string}`;
-					storefront: `0x${string}`;
-					arbiter: `0x${string}`;
-				};
-
-				console.info("EscrowCreated event", {
-					escrowAddress,
-					payee,
-					storefront,
-					arbiter,
-					txHash: log.transactionHash,
-				});
-
-				addEvent({
-					escrowAddress,
-					payee,
-					storefront,
-					arbiter,
-					blockNumber: log.blockNumber ?? undefined,
-					transactionHash: log.transactionHash as `0x${string}` | undefined,
-				});
-			}
-		},
-	});
-
-	return (
-		<EscrowEventsContext.Provider value={{ events, addEvent }}>
-			{children}
-		</EscrowEventsContext.Provider>
-	);
-}
-
-function useEscrowEvents() {
-	const ctx = useContext(EscrowEventsContext);
-	if (!ctx) throw new Error("useEscrowEvents must be used within EscrowEventsProvider");
-	return ctx;
+        addEvent(currentUser, {
+          escrowAddress,
+          payee,
+          storefront,
+          arbiter,
+          blockNumber: log.blockNumber ?? undefined,
+          transactionHash: log.transactionHash as `0x${string}` | undefined,
+        });
+      }
+    },
+  });
 }
 
 function EscrowEventsList() {
-	const { events } = useEscrowEvents();
+	const { address } = useAccount();
+	const { eventsByAccount } = useEscrowStore();
+	
+	const events = address ? (eventsByAccount[address] || []) : [];
+	
+	useWatchEscrowEvents();
+
+	if (!address) {
+		return <h3>Please connect your wallet to view escrows</h3>;
+	}
+	
 	if (events.length === 0) {
 		return <h3>No new escrows created</h3>;
 	}
@@ -178,7 +152,9 @@ interface EscrowInfo {
 }
 
 function EscrowItem({ event }: { event: EscrowEventInfo }) {
-	const { addEvent } = useEscrowEvents();
+	const { address } = useAccount();
+	const { addEvent } = useEscrowStore();
+  
 	const {
 		escrowAddress,
 		transactionHash,
@@ -212,7 +188,7 @@ function EscrowItem({ event }: { event: EscrowEventInfo }) {
 	] as const;
 
 	// Read core state from the cloned escrow contract (typed)
-	const result: UseReadContractsReturnType = useReadContracts({
+	const result: UseReadContractsReturnType<typeof contracts> = useReadContracts<typeof contracts>({
 		allowFailure: true,
 		contracts,
 		watch: true,
@@ -247,11 +223,12 @@ function EscrowItem({ event }: { event: EscrowEventInfo }) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data, isLoading, isError, escrowAddress, escrowInfo]);
 
-	// Ensure event present in global context (in case watcher missed it).
+	// Ensure event present in global store (in case watcher missed it).
 	useEffect(() => {
-		addEvent(event);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [event, addEvent]);
+		if (address) {
+			addEvent(address, event);
+		}
+	}, [event, addEvent, address]);
 
 	return (
 		<li
@@ -291,22 +268,20 @@ function EscrowItem({ event }: { event: EscrowEventInfo }) {
 
 export function App() {
 	return (
-		<EscrowEventsProvider>
-			<main>
-				<hr />
-				<Connect />
-				<hr />
-				<GrantMintPermissions />
-				<hr />
-				<GrantCreateEscrowPermissions />
-				<hr />
-				<Mint />
-				<hr />
-				<CreateEscrow />
-				<hr />
-				<EscrowEventsList />
-			</main>
-		</EscrowEventsProvider>
+		<main>
+			<hr />
+			<Connect />
+			<hr />
+			<GrantMintPermissions />
+			<hr />
+			<GrantCreateEscrowPermissions />
+			<hr />
+			<Mint />
+			<hr />
+			<CreateEscrow />
+			<hr />
+			<EscrowEventsList />
+		</main>
 	);
 }
 
@@ -584,6 +559,7 @@ function Mint() {
 
 function CreateEscrow() {
 	const { address } = useAccount();
+	const { addEvent } = useEscrowStore();
 
 	const { data: id, error, isPending, sendCalls } = useSendCalls();
 	const {
@@ -601,12 +577,10 @@ function CreateEscrow() {
 		},
 	});
 
-	const { addEvent } = useEscrowEvents();
-
 	const [transactions, setTransactions] = useState<Set<string>>(new Set());
 
 	useEffect(() => {
-		if (callsStatusData?.status !== "success") return;
+		if (!address || callsStatusData?.status !== "success") return;
 		const receipts = (
 			callsStatusData as {
 				receipts?: { transactionHash?: string; logs?: Log[] }[];
@@ -640,7 +614,7 @@ function CreateEscrow() {
 					const storefront = argObj.storefront as `0x${string}`;
 					const arbiter = argObj.arbiter as `0x${string}`;
 
-					addEvent({
+					addEvent(address, {
 						escrowAddress,
 						payee,
 						storefront,
@@ -660,7 +634,7 @@ function CreateEscrow() {
 				}
 			}
 		}
-	}, [callsStatusData, addEvent]);
+	}, [callsStatusData, addEvent, address]);
 
 	// Track callsStatusData updates
 	useEffect(() => {

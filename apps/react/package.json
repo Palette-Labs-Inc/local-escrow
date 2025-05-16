@@ -10,12 +10,14 @@
   },
   "dependencies": {
     "@tanstack/react-query": "catalog:",
+    "idb-keyval": "^6.2.2",
     "ox": "catalog:",
     "porto": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "viem": "catalog:",
     "wagmi": "catalog:",
-    "viem": "catalog:"
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "catalog:",
@@ -27,7 +29,7 @@
     "typed-query-selector": "^2.12.0",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "wrangler": "catalog:",
-    "vite-plugin-mkcert": "latest"
+    "vite-plugin-mkcert": "latest",
+    "wrangler": "catalog:"
   }
 }
