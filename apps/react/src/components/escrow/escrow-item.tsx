@@ -4,7 +4,6 @@ import {
   useReadContracts,
   useSendCalls,
   useCallsStatus,
-  useReadContract,
   type UseReadContractsReturnType,
 } from "wagmi";
 import { truncateHexString } from "../../utilities.ts";
@@ -14,6 +13,7 @@ import type { EscrowEventInfo } from "../../store/escrow-store.ts";
 import { exp1Address } from "../../contracts/contracts.ts";
 import { exp1Abi } from "../../contracts/contracts.ts";
 import { Value } from "ox";
+import { useBalance } from "../../hooks.ts";
 
 interface EscrowInfo {
   payer: `0x${string}`;
@@ -101,19 +101,11 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
    * ----------------------------------------------------------------------------------*/
   const [amount, setAmount] = useState<string>("");
 
-  // Fetch current EXP balance (raw bigint) for connected account
-  const { data: balanceRaw } = useReadContract({
-    abi: exp1Abi,
-    address: exp1Address,
-    functionName: "balanceOf",
-    args: [
-      (currentUser ?? `0x${"0".repeat(40)}`) as `0x${string}`,
-    ],
-    query: { enabled: !!currentUser, refetchInterval: 4_000 },
-  });
+  // Reuse global balance hook
+  const { raw: balanceRaw } = useBalance();
 
   const amountWei = amount ? parseEther(amount) : 0n;
-  const isAmountInvalid = !amount || amountWei === 0n || (balanceRaw ?? 0n) < amountWei;
+  const isAmountInvalid = !amount || amountWei === 0n || balanceRaw < amountWei;
 
   const {
     data: txId,
@@ -123,7 +115,16 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
   } = useSendCalls();
 
   // Link txId -> confirmation status
-  const { data: statusData } = useCallsStatus({ id: txId?.id as string, query: { enabled: !!txId } });
+  const { data: statusData } = useCallsStatus({
+    id: txId?.id as string,
+    query: {
+      enabled: !!txId,
+      refetchInterval: (query) => {
+        if (query.state.data?.status === "success") return false;
+        return 1_000; // poll every second until success
+      },
+    },
+  });
 
   // Set a sensible default once balance is fetched
   useEffect(() => {

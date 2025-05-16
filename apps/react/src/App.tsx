@@ -456,7 +456,7 @@ function Mint() {
 		},
 	});
 
-	const balance = useBalance();
+	const { formatted: balance } = useBalance();
 	const [transactions, setTransactions] = useState<Set<string>>(new Set());
 
 	useEffect(() => {
@@ -474,7 +474,6 @@ function Mint() {
 		}
 	}, [callsStatusData]);
 
-	// Log mutation responses
 	useEffect(() => {
 		if (id) {
 			console.info("[Mint] useSendCalls response", id);
