@@ -1,0 +1,33 @@
+{
+  "name": "client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 6901 --open",
+    "build": "vite build",
+    "deploy": "vite build && wrangler --config='wrangler.toml' deploy",
+    "typecheck": "tsc --noEmit --project tsconfig.json"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "catalog:",
+    "ox": "catalog:",
+    "porto": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "wagmi": "catalog:",
+    "viem": "catalog:"
+  },
+  "devDependencies": {
+    "@tanstack/react-query-devtools": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "^4.3.4",
+    "globals": "catalog:",
+    "typed-query-selector": "^2.12.0",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "wrangler": "catalog:",
+    "vite-plugin-mkcert": "latest"
+  }
+}

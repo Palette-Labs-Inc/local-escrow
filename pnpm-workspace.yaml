@@ -13,6 +13,7 @@ catalog:
   typescript: ^5.8.3
   vite: ^6.0.7
   "@vitejs/plugin-react": ^4.3.4
+  wrangler: ^3.53.0
 
   # Styling
   tailwindcss: ^4.1.5
@@ -23,6 +24,7 @@ catalog:
   "@tanstack/react-query": ^5.74.3
   "@tanstack/react-query-devtools": ^5.74.3
   "@tanstack/query-sync-storage-persister": ^5.74.3
+  "@tanstack/react-query-persist-client": ^5.74.3
   zustand: ^5.0.3
 
   # Web3
@@ -36,11 +38,11 @@ catalog:
   sonner: ^2.0.3
   globals: ^16.0.0
   "@types/node": ^22.14.1
-  porto: ^0.0.22
+  porto: ^0.0.23
   "@types/react": ^19
   "@types/react-dom": ^19
   vite-plugin-mkcert: ^1.17.8
   "@biomejs/biome": ^1.9.4
 
 overrides:
-  porto: 0.0.22
+  porto: 0.0.23
