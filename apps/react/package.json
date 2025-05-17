@@ -17,7 +17,13 @@
     "react-dom": "catalog:",
     "viem": "catalog:",
     "wagmi": "catalog:",
-    "zustand": "^5.0.4"
+    "@tanstack/router-plugin": "catalog:",
+    "@ariakit/react": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "tailwindcss": "catalog:",
+    "tw-animate-css": "catalog:",
+    "lucide-react": "catalog:",
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "catalog:",
