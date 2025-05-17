@@ -1,12 +1,12 @@
 import { useAccount } from "wagmi";
-import { useEscrowStore } from "../../store/escrow-store.ts";
-import { useWatchEscrowEvents } from "./use-watch-escrow-events.ts";
-import { EscrowItem } from "./escrow-item.tsx";
+import { useEscrowStore } from "../store/escrow-store.ts";
+import * as EscrowEvents from "../lib/EscrowEvents.ts";
+import { EscrowItem } from "./EscrowItem.tsx";
 
 export function EscrowList() {
   const { address } = useAccount()
   const { eventsByAccount } = useEscrowStore()
-  useWatchEscrowEvents()
+  EscrowEvents.useWatchEscrowEvents()
 
   if (!address) {
     return <h3>Please connect your wallet to view escrows</h3>;
