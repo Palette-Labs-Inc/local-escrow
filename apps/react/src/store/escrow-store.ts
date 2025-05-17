@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { StateStorage } from 'zustand/middleware'
-import { storage } from './storage.js'
+import * as Storage from '../lib/Storage.js'
 import type { Address, Hex } from 'ox'
 
 export type EscrowEventInfo = {
@@ -21,14 +21,14 @@ interface EscrowStore {
 
 const zustandStorage: StateStorage = {
   getItem: async (name) => {
-    const value = await storage.getItem<string>(name)
+    const value = await Storage.storage.getItem<string>(name)
     return (value as unknown as string) ?? null
   },
   setItem: async (name, value) => {
-    await storage.setItem(name, value)
+    await Storage.storage.setItem(name, value)
   },
   removeItem: async (name) => {
-    await storage.removeItem(name)
+    await Storage.storage.removeItem(name)
   },
 }
 
