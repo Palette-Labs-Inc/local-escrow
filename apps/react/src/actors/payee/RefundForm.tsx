@@ -1,14 +1,13 @@
 import {
   Form as AriakitForm,
   FormInput as AriakitFormInput,
-  FormSubmit as AriakitFormSubmit,
   Button as AriakitButton,
-  useFormStore
+  useFormStore,
 } from '@ariakit/react'
 import { parseEther } from 'viem'
 import type { Address } from 'ox'
 
-import * as Refund from '../lib/Refund.ts'
+import * as Refund from '../../lib/Refund.ts'
 
 const buttonClassName =
   'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50'
@@ -17,29 +16,18 @@ const buttonVariantClasses = {
   secondary: 'bg-white hover:bg-gray-50 text-gray-700 border-gray-300',
 }
 
-export interface RefundFormProps {
-  escrowAddress: Address.Address
-  onSuccess: () => void
-}
-
-function useForm() {
+function useRefundForm() {
   const form = useFormStore({ defaultValues: { amount: '1' } })
   const amountInput = (form.useValue as unknown as (name: string) => string)('amount')
   const amountWei = amountInput ? parseEther(amountInput) : 0n
-
   const isAmountInvalid = !amountInput || amountWei === 0n
-
-  return { form, amountInput, amountWei, isAmountInvalid } as const
+  return { form, amountWei, isAmountInvalid } as const
 }
 
-export function RefundForm({ escrowAddress, onSuccess }: RefundFormProps) {
-  const { form, amountWei, isAmountInvalid } = useForm()
-  
-  const refundAction = Refund.useAction({
-    escrowAddress,
-    onSuccess,
-    amount: amountWei,
-  })
+export function RefundForm({ escrowAddress, onSuccess }: RefundForm.Props) {
+  const { form, amountWei, isAmountInvalid } = useRefundForm()
+
+  const refundAction = Refund.useAction({ escrowAddress, onSuccess, amount: amountWei })
 
   const amountField = String(form.names.amount as unknown as string)
 
@@ -78,11 +66,15 @@ export function RefundForm({ escrowAddress, onSuccess }: RefundFormProps) {
         </AriakitButton>
       </div>
 
-      {isAmountInvalid && (
-        <small className="text-red-600">Enter a valid amount</small>
-      )}
-      
+      {isAmountInvalid && <small className="text-red-600">Enter a valid amount</small>}
       {refundAction.isPending && <small>Processing refund...</small>}
     </AriakitForm>
   )
+}
+
+export namespace RefundForm {
+  export interface Props {
+    escrowAddress: Address.Address
+    onSuccess: () => void
+  }
 } 

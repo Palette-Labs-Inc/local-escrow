@@ -1,23 +1,12 @@
-import { Button as AriakitButton } from '@ariakit/react'
 import { useAccount } from 'wagmi'
 import type { EscrowEventInfo } from '../store/escrow-store.ts'
-import * as Dispute from '../lib/Dispute.ts'
-import * as RemoveDispute from '../lib/RemoveDispute.ts'
 import { AddressBadge } from './AddressBadge.tsx'
 import { StatusBadge } from './StatusBadge.tsx'
-import { SettleEscrowForm } from './SettleEscrowForm.tsx'
-import { RefundForm } from './RefundForm.tsx'
-import { ResolveDisputeForm } from './ResolveDisputeForm.tsx'
 import * as EscrowInfo from '../lib/EscrowInfo.ts'
 
-const buttonClassName =
-  'inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium shadow-sm disabled:opacity-50'
-
-const buttonVariantClasses = {
-  primary: 'bg-blue-50 text-blue-700 hover:bg-blue-100',
-  secondary: 'bg-gray-50 text-gray-700 hover:bg-gray-100',
-  danger: 'bg-red-50 text-red-700 hover:bg-red-100',
-}
+import { Widgets as PayerWidgets } from '../actors/payer/Widgets.tsx'
+import { Widgets as PayeeWidgets } from '../actors/payee/Widgets.tsx'
+import { Widgets as ArbiterWidgets } from '../actors/arbiter/Widgets.tsx'
 
 export interface EscrowCardProps {
   event: EscrowEventInfo
@@ -46,16 +35,7 @@ export function EscrowCard({ event }: EscrowCardProps) {
     arbiter,
   })
 
-  // Actions ---------------------------------------------------------------
-  const disputeAction = Dispute.useAction({
-    escrowAddress,
-    onSuccess: refetch,
-  })
-
-  const removeDisputeAction = RemoveDispute.useAction({
-    escrowAddress,
-    onSuccess: refetch,
-  })
+  const onSuccess = refetch
 
   if (isError) return <small>Failed to fetch escrow state</small>
 
@@ -92,54 +72,35 @@ export function EscrowCard({ event }: EscrowCardProps) {
 
       {currentUser && (
         <section className="mt-4">
-          <div className="flex flex-wrap gap-2">
-            {canDispute && (
-              <AriakitButton
-                className={`${buttonClassName} ${buttonVariantClasses.danger}`}
-                disabled={disputeAction.isPending}
-                onClick={disputeAction.handle}
-                type="button"
-              >
-                Dispute
-              </AriakitButton>
-            )}
-
-            {canRemoveDispute && (
-              <AriakitButton
-                className={`${buttonClassName} ${buttonVariantClasses.secondary}`}
-                disabled={removeDisputeAction.isPending}
-                onClick={removeDisputeAction.handle}
-                type="button"
-              >
-                Remove Dispute
-              </AriakitButton>
-            )}
-          </div>
-
-          {canSettle && (
-            <SettleEscrowForm escrowAddress={escrowAddress} onSuccess={refetch} />
+          {userRole === 'payer' && (
+            <PayerWidgets
+              escrowAddress={escrowAddress}
+              onSuccess={onSuccess}
+              permissions={{ canDispute, canRemoveDispute, canSettle, canRefund, canResolveDispute }}
+            />
           )}
-
-          {canRefund && (
-            <RefundForm escrowAddress={escrowAddress} onSuccess={refetch} />
+          {userRole === 'payee' && (
+            <PayeeWidgets
+              escrowAddress={escrowAddress}
+              onSuccess={onSuccess}
+              permissions={{ canDispute, canRemoveDispute, canSettle, canRefund, canResolveDispute }}
+            />
           )}
-
-          {canResolveDispute && (
-            <ResolveDisputeForm escrowAddress={escrowAddress} onSuccess={refetch} />
+          {userRole === 'arbiter' && (
+            <ArbiterWidgets
+              escrowAddress={escrowAddress}
+              onSuccess={onSuccess}
+              permissions={{ canDispute, canRemoveDispute, canSettle, canRefund, canResolveDispute }}
+            />
           )}
         </section>
       )}
 
       {transactionHash && (
-        <footer className="mt-2 text-sm">
-          <a
-            href={`https://sepolia.basescan.org/tx/${transactionHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View order
-          </a>
-        </footer>
+        <div>
+        <strong>Transaction </strong>
+        <AddressBadge address={transactionHash} length={10} />
+      </div>
       )}
     </article>
   )

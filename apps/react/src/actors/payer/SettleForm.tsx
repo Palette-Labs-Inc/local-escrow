@@ -5,17 +5,12 @@ import {
 } from '@ariakit/react'
 import type { Address } from 'ox'
 
-import * as Settle from '../lib/Settle.ts'
+import * as Settle from '../../lib/Settle.ts'
 
 const buttonClassName =
   'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50'
 
-export interface SettleEscrowFormProps {
-  escrowAddress: Address.Address
-  onSuccess: () => void
-}
-
-export function SettleEscrowForm({ escrowAddress, onSuccess }: SettleEscrowFormProps) {
+export function SettleForm({ escrowAddress, onSuccess }: SettleForm.Props) {
   const { form, amountWei, isAmountInvalid } = Settle.useForm()
   const { error, isPending, statusData, handle } = Settle.useAction({
     escrowAddress,
@@ -24,7 +19,6 @@ export function SettleEscrowForm({ escrowAddress, onSuccess }: SettleEscrowFormP
     onSuccess,
   })
 
-  // Ensure name/id typed correctly
   const amountField = String(form.names.amount as unknown as string)
 
   return (
@@ -64,4 +58,11 @@ export function SettleEscrowForm({ escrowAddress, onSuccess }: SettleEscrowFormP
       )}
     </AriakitForm>
   )
+}
+
+export namespace SettleForm {
+  export interface Props {
+    escrowAddress: Address.Address
+    onSuccess: () => void
+  }
 } 

@@ -9,4 +9,4 @@ export const Route = createFileRoute('/shop')({
       <CreateEscrow />
     </Layout.Content>
   ),
-}) 
+})

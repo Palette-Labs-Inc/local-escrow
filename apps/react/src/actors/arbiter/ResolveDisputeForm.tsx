@@ -1,14 +1,13 @@
 import {
   Form as AriakitForm,
   FormInput as AriakitFormInput,
-  FormSubmit as AriakitFormSubmit,
   Button as AriakitButton,
-  useFormStore
+  useFormStore,
 } from '@ariakit/react'
 import { parseEther } from 'viem'
 import type { Address } from 'ox'
 
-import * as ResolveDispute from '../lib/ResolveDispute.ts'
+import * as ResolveDispute from '../../lib/ResolveDispute.ts'
 
 const buttonClassName =
   'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50'
@@ -18,37 +17,18 @@ const buttonVariantClasses = {
   danger: 'bg-red-600 hover:bg-red-700 text-white border-red-600',
 }
 
-export interface ResolveDisputeFormProps {
-  escrowAddress: Address.Address
-  onSuccess: () => void
-}
-
-function useForm() {
+function useResolveForm() {
   const form = useFormStore({ defaultValues: { amount: '1' } })
   const amountInput = (form.useValue as unknown as (name: string) => string)('amount')
   const amountWei = amountInput ? parseEther(amountInput) : 0n
-
   const isAmountInvalid = !amountInput || amountWei === 0n
-
-  return { form, amountInput, amountWei, isAmountInvalid } as const
+  return { form, amountWei, isAmountInvalid } as const
 }
 
-export function ResolveDisputeForm({ escrowAddress, onSuccess }: ResolveDisputeFormProps) {
-  const { form, amountWei, isAmountInvalid } = useForm()
-  
-  const approveAction = ResolveDispute.useAction({
-    escrowAddress,
-    onSuccess,
-    shouldSettle: true,
-    amount: amountWei,
-  })
-  
-  const rejectAction = ResolveDispute.useAction({
-    escrowAddress,
-    onSuccess,
-    shouldSettle: false,
-    amount: amountWei,
-  })
+export function ResolveDisputeForm({ escrowAddress, onSuccess }: ResolveDisputeForm.Props) {
+  const { form, amountWei, isAmountInvalid } = useResolveForm()
+  const approveAction = ResolveDispute.useAction({ escrowAddress, onSuccess, shouldSettle: true, amount: amountWei })
+  const rejectAction = ResolveDispute.useAction({ escrowAddress, onSuccess, shouldSettle: false, amount: amountWei })
 
   const amountField = String(form.names.amount as unknown as string)
 
@@ -57,9 +37,7 @@ export function ResolveDisputeForm({ escrowAddress, onSuccess }: ResolveDisputeF
       store={form}
       aria-label="Resolve Dispute"
       className="mt-3 grid gap-2"
-      onSubmit={(e) => {
-        e.preventDefault() 
-      }}
+      onSubmit={(e) => e.preventDefault()}
     >
       <label className="text-sm" htmlFor={amountField}>
         Amount to transfer
@@ -82,7 +60,7 @@ export function ResolveDisputeForm({ escrowAddress, onSuccess }: ResolveDisputeF
         >
           Approve Escrow
         </AriakitButton>
-        
+
         <AriakitButton
           className={`${buttonClassName} ${buttonVariantClasses.danger}`}
           disabled={rejectAction.isPending || isAmountInvalid}
@@ -93,12 +71,16 @@ export function ResolveDisputeForm({ escrowAddress, onSuccess }: ResolveDisputeF
         </AriakitButton>
       </div>
 
-      {isAmountInvalid && (
-        <small className="text-red-600">Enter a valid amount</small>
-      )}
-      
+      {isAmountInvalid && <small className="text-red-600">Enter a valid amount</small>}
       {approveAction.isPending && <small>Processing approval...</small>}
       {rejectAction.isPending && <small>Processing rejection...</small>}
     </AriakitForm>
   )
+}
+
+export namespace ResolveDisputeForm {
+  export interface Props {
+    escrowAddress: Address.Address
+    onSuccess: () => void
+  }
 } 
