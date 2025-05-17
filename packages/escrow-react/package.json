@@ -20,20 +20,23 @@
   "dependencies": {
     "@local-escrow/core": "workspace:*",
     "@local-escrow/contracts": "workspace:*",
-    "@ariakit/tailwind": "catalog:",
-    "@tailwindcss/vite": "catalog:",
-    "@ariakit/react": "catalog:",
+    "idb-keyval": "catalog:",
+    "ox": "catalog:",
+    "porto": "catalog:"
+  },
+  "peerDependencies": {
     "react": "catalog:",
+    "react-dom": "catalog:",
     "wagmi": "catalog:",
     "viem": "catalog:",
-    "ox": "catalog:",
-    "zustand": "catalog:",
-    "idb-keyval": "catalog:",
-    "porto": "catalog:",
-    "tailwindcss": "catalog:"
+    "@ariakit/react": "catalog:",
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",
-    "@types/react-dom": "catalog:"
+    "@types/react-dom": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@ariakit/tailwind": "catalog:",
+    "tailwindcss": "catalog:"
   }
 }  
