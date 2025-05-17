@@ -1,4 +1,4 @@
-import { exp1Address, exp1Config } from '../../../contracts/src/contracts.js';
+import { exp1Address, exp1Config } from '@local-escrow/contracts';
 import { useAccount, useReadContract } from 'wagmi';
 import { Value } from 'ox';
 
