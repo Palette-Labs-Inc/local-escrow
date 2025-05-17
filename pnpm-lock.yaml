@@ -86,6 +86,15 @@ importers:
       '@biomejs/biome':
         specifier: ^1.9.4
         version: 1.9.4
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.15.18
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.1.4
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.1.5(@types/react@19.1.4)
       tsx:
         specifier: ^4.19.4
         version: 4.19.4
@@ -98,6 +107,9 @@ importers:
       '@local-escrow/core':
         specifier: workspace:*
         version: link:../../packages/escrow-core
+      '@local-escrow/react':
+        specifier: workspace:*
+        version: link:../../packages/escrow-react
       '@tailwindcss/vite':
         specifier: 'catalog:'
         version: 4.1.7(vite@6.3.5(@types/node@22.15.18)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.19.4))
@@ -181,6 +193,12 @@ importers:
         specifier: 'catalog:'
         version: 3.114.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
 
+  packages/contracts:
+    dependencies:
+      viem:
+        specifier: 'catalog:'
+        version: 2.29.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.4)
+
   packages/escrow-core:
     dependencies:
       ox:
@@ -189,6 +207,34 @@ importers:
       viem:
         specifier: 'catalog:'
         version: 2.29.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.4)
+
+  packages/escrow-react:
+    dependencies:
+      '@local-escrow/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@local-escrow/core':
+        specifier: workspace:*
+        version: link:../escrow-core
+      ox:
+        specifier: 'catalog:'
+        version: 0.6.12(typescript@5.8.3)(zod@3.24.4)
+      react:
+        specifier: 'catalog:'
+        version: 19.1.0
+      viem:
+        specifier: 'catalog:'
+        version: 2.29.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.4)
+      wagmi:
+        specifier: 'catalog:'
+        version: 2.15.3(@tanstack/query-core@5.76.0)(@tanstack/react-query@5.76.1(react@19.1.0))(@types/react@19.1.4)(bufferutil@4.0.9)(react@19.1.0)(typescript@5.8.3)(utf-8-validate@5.0.10)(viem@2.29.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.4))(zod@3.24.4)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.1.4
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.1.5(@types/react@19.1.4)
 
 packages:
 

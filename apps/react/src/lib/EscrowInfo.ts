@@ -1,7 +1,5 @@
 import type { Address } from 'ox'
-import { useEscrowData } from '../hooks/useEscrowData.ts'
-import { useEscrowState } from '../hooks/useEscrowState.ts'
-import { useEscrowPermissions } from '../hooks/useEscrowPermissions.ts'
+import { useEscrowData, useEscrowState, useEscrowPermissions } from '@local-escrow/react'
 import { getUserRole } from '@local-escrow/core'
 
 export function useEscrow(params: {

@@ -1,6 +1,6 @@
 import { useAccount, useWatchContractEvent, type UseCallsStatusReturnType } from "wagmi";
 import type { Log } from "viem";
-import EscrowFactory from "../contracts/EscrowFactory.ts";
+import EscrowFactory from "../../../../packages/contracts/src/EscrowFactory.ts";
 import { useEscrowStore } from "../store/escrow-store.ts";
 import type { Address, Hex } from "ox";
 

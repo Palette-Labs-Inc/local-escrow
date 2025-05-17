@@ -1,7 +1,6 @@
 import type { Address } from 'ox'
-import SimpleEscrow from '../contracts/SimpleEscrow.ts'
-import { exp1Address } from '../contracts/contracts.ts'
-import { useEscrowAction } from '../hooks/useEscrowAction.ts'
+import SimpleEscrow, { exp1Address } from '@local-escrow/contracts'
+import { useEscrowAction } from '@local-escrow/react'
 import { encodeFunctionData } from 'viem'
 
 export interface UseActionParameters {

@@ -26,7 +26,8 @@
     "lucide-react": "catalog:",
     "zustand": "catalog:",
     "@tanstack/react-router": "catalog:",
-    "@local-escrow/core": "workspace:*"
+    "@local-escrow/core": "workspace:*",
+    "@local-escrow/react": "workspace:*"
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "catalog:",

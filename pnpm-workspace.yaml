@@ -28,6 +28,9 @@ catalog:
   "@tanstack/react-router": ^1.120.5
   "@tanstack/react-router-devtools": ^1.120.5
   "@tanstack/router-plugin": ^1.120.5
+  "@types/node": "^22.14.1"
+  "@types/react": "^19"
+  "@types/react-dom": "^19"
 
   # Web3
   wagmi: ^2.15.0
@@ -41,10 +44,7 @@ catalog:
   sonner: ^2.0.3
   zustand: ^5.0.4
   globals: ^16.0.0
-  "@types/node": ^22.14.1
   porto: ^0.0.23
-  "@types/react": ^19
-  "@types/react-dom": ^19
   vite-plugin-mkcert: ^1.17.8
   "@biomejs/biome": ^1.9.4
   "@ariakit/react": ^0.4.17

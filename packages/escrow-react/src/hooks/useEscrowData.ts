@@ -1,14 +1,21 @@
 import { useMemo } from 'react'
 import { useReadContracts, type UseReadContractsReturnType } from 'wagmi'
 import type { Address } from 'ox'
-import SimpleEscrow from '../contracts/SimpleEscrow.ts'
+import { SimpleEscrow } from '@local-escrow/contracts'
 import type { EscrowInfo } from '@local-escrow/core'
 
-export interface UseEscrowDataParameters {
+export type UseEscrowDataParameters = {
   escrowAddress: Address.Address
 }
 
-export function useEscrowData({ escrowAddress }: UseEscrowDataParameters) {
+export type EscrowDataResult = {
+  info?: EscrowInfo
+  isLoading: boolean
+  isError: boolean
+  refetch: () => void
+}
+
+export function useEscrowData({ escrowAddress }: UseEscrowDataParameters): EscrowDataResult {
   const contracts = useMemo(
     () => [
       { address: escrowAddress, abi: SimpleEscrow.abi, functionName: 'payer' },
@@ -37,5 +44,5 @@ export function useEscrowData({ escrowAddress }: UseEscrowDataParameters) {
     isLoading: result.isLoading,
     isError: result.isError,
     refetch: result.refetch,
-  } as const
+  }
 } 

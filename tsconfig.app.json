@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -12,12 +14,16 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["typed-query-selector/strict"],
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    /* Types */
+    "types": ["node", "react", "react-dom"]
   },
-  "include": ["src", "../../packages/contracts/src/EscrowFactory.ts", "../../packages/contracts/src/SimpleEscrow.ts", "../../packages/contracts/src/contracts.ts"]
-}
+  "include": ["src"]
+} 

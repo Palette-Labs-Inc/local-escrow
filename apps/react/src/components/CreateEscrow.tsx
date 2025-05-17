@@ -1,7 +1,7 @@
 import { encodeFunctionData } from 'viem'
 import { useAccount, useSendCalls, useCallsStatus, type BaseError } from 'wagmi'
 import { Button } from '@ariakit/react'
-import EscrowFactory from '../contracts/EscrowFactory'
+import EscrowFactory from '../../../../packages/contracts/src/EscrowFactory'
 import * as EscrowEvents from '../lib/EscrowEvents'
 
 const buttonClassName =

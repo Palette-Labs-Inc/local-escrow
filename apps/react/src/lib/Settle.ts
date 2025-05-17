@@ -6,9 +6,9 @@ import { useAccount } from 'wagmi'
 import type { Address } from 'ox'
 
 import { useExpBalance } from './Balance.ts'
-import { exp1Abi, exp1Address } from '../contracts/contracts.ts'
-import SimpleEscrow from '../contracts/SimpleEscrow.ts'
-import { useEscrowAction } from '../hooks/useEscrowAction.ts'
+import { exp1Abi, exp1Address } from '../../../../packages/contracts/src/contracts.ts'
+import SimpleEscrow from '../../../../packages/contracts/src/SimpleEscrow.ts'
+import { useEscrowAction } from '@local-escrow/react'
 
 // ---------------------------------------------------------------------------
 // useForm

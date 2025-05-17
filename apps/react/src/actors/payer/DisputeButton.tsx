@@ -24,4 +24,4 @@ export namespace DisputeButton {
     escrowAddress: Address.Address
     onSuccess: () => void
   }
-} 
+}

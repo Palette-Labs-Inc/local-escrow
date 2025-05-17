@@ -1,4 +1,4 @@
-import { exp1Address, exp1Config } from '../contracts/contracts.ts';
+import { exp1Address, exp1Config } from '../../../../packages/contracts/src/contracts.ts';
 import { useAccount, useReadContract } from 'wagmi';
 import { Value } from 'ox';
 

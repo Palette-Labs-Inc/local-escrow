@@ -1,7 +1,7 @@
 import { Hex, Value, P256, PublicKey } from 'ox'
 // import { exp1Address } from './contracts/contracts.ts'
-import EscrowFactory from './contracts/EscrowFactory.ts'
-import { exp1Address, exp1Config as ExperimentERC20 } from './contracts/contracts.ts'
+import EscrowFactory from '../../../packages/contracts/src/EscrowFactory.ts'
+import { exp1Address, exp1Config as ExperimentERC20 } from '../../../packages/contracts/src/contracts.ts'
 import { parseEther } from 'viem'
 
 // Base Sepolia chain ID (decimal & hex)

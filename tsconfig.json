@@ -10,9 +10,11 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@local-escrow/core": ["packages/escrow-core/src"]
+      "@local-escrow/core": ["packages/escrow-core/src"],
+      "@local-escrow/react": ["packages/escrow-react/src"]
     },
-    "types": ["node"]
+    "types": ["node", "react", "react-dom"]   // or remove the line completely
+
   },
   "exclude": ["node_modules", "dist"]
 }
