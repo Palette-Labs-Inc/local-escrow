@@ -1,6 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { App as Home } from '../App'
+import { createFileRoute, Navigate } from '@tanstack/react-router'
+import { useAccount } from 'wagmi'
 
 export const Route = createFileRoute('/')({
-  component: Home,
+  component: () => {
+    const { isConnected } = useAccount()
+    return <Navigate to={isConnected ? '/profile' : '/login'} replace />
+  },
 }) 
