@@ -1,11 +1,11 @@
-import { useAccount, useWatchContractEvent } from "wagmi";
+import { useAccount, useWatchContractEvent, type UseCallsStatusReturnType } from "wagmi";
 import type { Log } from "viem";
 import EscrowFactory from "../contracts/EscrowFactory.ts";
 import { useEscrowStore } from "../store/escrow-store.ts";
 import type { Address, Hex } from "ox";
 
 export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameters) {
-  const { onEvent } = parameters || {};
+  const { onEvent, statusData } = parameters || {};
   const { address: currentUser } = useAccount();
   const { addEvent } = useEscrowStore();
 
@@ -34,6 +34,7 @@ export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameter
           arbiter,
           blockNumber: log.blockNumber ?? undefined,
           transactionHash: log.transactionHash as `0x${string}` | undefined,
+          status: statusData?.status,
         }
 
         addEvent(currentUser, eventInfo);
@@ -57,6 +58,8 @@ export declare namespace useWatchEscrowEvents {
       arbiter: Address.Address;
       blockNumber?: bigint;
       transactionHash?: Hex.Hex;
+      status?: string;
     }) => void;
+    statusData?: UseCallsStatusReturnType["data"];
   };
 } 

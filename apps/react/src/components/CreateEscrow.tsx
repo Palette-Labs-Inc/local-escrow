@@ -1,179 +1,77 @@
-import { type Errors, Json } from "ox";
-import { useState, useEffect } from "react";
-import { type Log, decodeEventLog, encodeFunctionData } from "viem";
-import { useAccount, useSendCalls, useCallsStatus } from "wagmi";
-import EscrowFactory from "../contracts/EscrowFactory";
-import { useEscrowStore } from "../store/escrow-store";
-import { truncateHexString } from "../utils";
-import { Button } from "@ariakit/react";
+import { encodeFunctionData } from 'viem'
+import { useAccount, useSendCalls, useCallsStatus, type BaseError } from 'wagmi'
+import { Button } from '@ariakit/react'
+import EscrowFactory from '../contracts/EscrowFactory'
+import * as EscrowEvents from '../lib/EscrowEvents'
 
-const buttonClassName = "inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50";
+const buttonClassName =
+	'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50'
 
 export function CreateEscrow() {
-	const { address } = useAccount();
-	const { addEvent } = useEscrowStore();
+	const { address } = useAccount()
+	const { data, error, isPending, sendCalls } = useSendCalls()
 
-	const { data: id, error, isPending, sendCalls } = useSendCalls();
 	const {
-		data: callsStatusData,
+		data: statusData,
 		isLoading: isConfirming,
 		isSuccess: isConfirmed,
 	} = useCallsStatus({
-		id: id?.id as string,
-		query: {
-			enabled: !!id,
-			refetchInterval: (query) => {
-				if (query.state.data?.status === "success") return false;
-				return 1_000;
-			},
-		},
-	});
+		id: data?.id as string,
+		query: { enabled: !!data },
+	})
 
-	const [transactions, setTransactions] = useState<Set<string>>(new Set());
+	EscrowEvents.useWatchEscrowEvents({ statusData })
 
-	useEffect(() => {
-		if (!address || callsStatusData?.status !== "success") return;
-		const receipts = (
-			callsStatusData as {
-				receipts?: { transactionHash?: string; logs?: Log[] }[];
-			} | undefined
-		)?.receipts ?? [];
-		const hashes = receipts
-			.map((r) => r.transactionHash)
-			.filter((h): h is string => Boolean(h));
-		if (hashes.length) {
-			setTransactions((prev) => new Set([...prev, ...hashes]));
-		}
-
-		for (const receipt of receipts) {
-			for (const log of receipt.logs ?? []) {
-				if (
-					log.address.toLowerCase() !== EscrowFactory.address.toLowerCase()
-				)
-					continue;
-
-				try {
-					const { args } = decodeEventLog({
-						abi: EscrowFactory.abi,
-						data: log.data,
-						topics: log.topics,
-					});
-					// viem may return args as an array or object; we assume object here.
-					// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-					const argObj = args as unknown as Record<string, unknown>;
-					const escrowAddress = argObj.escrowAddress as `0x${string}`;
-					const payee = argObj.payee as `0x${string}`;
-					const storefront = argObj.storefront as `0x${string}`;
-					const arbiter = argObj.arbiter as `0x${string}`;
-
-					addEvent(address, {
-						escrowAddress,
-						payee,
-						storefront,
-						arbiter,
-						blockNumber: log.blockNumber ?? undefined,
-						transactionHash: receipt.transactionHash as `0x${string}`,
-					});
-
-					console.info("[CreateEscrow] Decoded EscrowCreated from receipt", {
-						escrowAddress,
-						payee,
-						storefront,
-						arbiter,
-					});
-				} catch {
-					// ignore decoding errors
-				}
-			}
-		}
-	}, [callsStatusData, addEvent, address]);
-
-	// Track callsStatusData updates
-	useEffect(() => {
-		if (callsStatusData?.status !== "success") return;
-		// eslint-disable-next-line no-console
-		console.info("[CreateEscrow] callsStatusData", callsStatusData);
-	}, [callsStatusData]);
-
-	// Additional log for each status change
-	useEffect(() => {
-		if (!id?.id) return;
-		// eslint-disable-next-line no-console
-		console.debug("[CreateEscrow] Status update", {
-			id: id.id,
-			isConfirming,
-			isConfirmed,
-		});
-	}, [id?.id, isConfirming, isConfirmed]);
-
-	if (!address) return null;
+	if (!address) return null
 
 	const calldata = encodeFunctionData({
 		abi: EscrowFactory.abi,
-		functionName: "createEscrow",
+		functionName: 'createEscrow',
 		args: [address, address, address],
-	});
+	})
 
 	return (
-		<div>
-			<h3>[client] Create Escrow</h3>
+		<section className="rounded-lg border border-gray-200 p-4">
+			<h2 className="text-xl font-semibold mb-4">Create Escrow</h2>
+
 			<form
-				onSubmit={(event) => {
-					event.preventDefault();
-					// eslint-disable-next-line no-console
-					console.info("[CreateEscrow] Submitting sendCalls", { data: calldata });
+				onSubmit={(e) => {
+					e.preventDefault()
 					sendCalls({
-						calls: [
-							{
-								data: calldata,
-								to: EscrowFactory.address,
-							},
-						],
-					});
+						calls: [{ data: calldata, to: EscrowFactory.address }],
+					})
 				}}
+				className="space-y-4"
 			>
 				<Button
-					type="submit"
 					disabled={isPending}
+					type="submit"
 					className={buttonClassName}
-					style={{ marginBottom: "5px" }}
 				>
-					{isPending ? "Confirming..." : "Create Escrow"}
+					{isPending ? 'Confirming...' : 'Create Escrow'}
 				</Button>
+
+				{data?.id && (
+					<div className="text-sm">
+						<span className="text-gray-600">Transaction Hash: </span>
+						<span className="font-mono">{data.id}</span>
+					</div>
+				)}
+
+				{isConfirming && (
+					<div className="text-sm text-blue-600">Waiting for confirmation...</div>
+				)}
+				{isConfirmed && (
+					<div className="text-sm text-green-600">Transaction confirmed.</div>
+				)}
+				{error && (
+					<div className="text-sm text-red-600">
+						Error: {(error as BaseError).shortMessage || error.message}
+					</div>
+				)}
 			</form>
-			<ul style={{ listStyleType: "none", padding: 0 }}>
-				{Array.from(transactions).map((tx) => (
-					<li key={tx}>
-						<a
-							target="_blank"
-							rel="noopener noreferrer"
-							href={`https://sepolia.basescan.org/tx/${tx}`}
-						>
-							{tx}
-						</a>
-					</li>
-				))}
-			</ul>
-			<p>{isConfirming && "Waiting for confirmation..."}</p>
-			<p>{isConfirmed && "Transaction confirmed."}</p>
-			{error && (
-				<div>
-					Error: {(error as Errors.BaseError).shortMessage || error.message}
-				</div>
-			)}
-			{id && (
-				<details style={{ marginTop: "5px" }}>
-					<summary>
-						<span style={{ marginRight: "8px" }}>useSendCalls response:</span>
-						{truncateHexString({
-							address:
-								typeof id === "string" ? id : (id as { id: string }).id,
-							length: 12,
-						})}
-					</summary>
-					<pre>{Json.stringify(id, undefined, 2)}</pre>
-				</details>
-			)}
-		</div>
-	);
+
+			{/* Transaction hashes list removed as per request */}
+		</section>
+	)
 }

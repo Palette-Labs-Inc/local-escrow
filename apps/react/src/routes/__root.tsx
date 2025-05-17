@@ -34,13 +34,13 @@ function RootLayout() {
                 className="px-2 py-1 rounded focus:outline-none"
                 render={
                   <Link
-                    to="/orders"
+                    to="/shop"
                     className="outline-none"
                     activeProps={{ className: 'font-semibold text-blue-600' }}
                   />
                 }
               >
-                Orders
+                Shop
               </MenuItem>
             </Menubar>
           )}
