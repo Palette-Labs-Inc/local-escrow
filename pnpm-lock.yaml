@@ -122,9 +122,6 @@ importers:
       '@local-escrow/react':
         specifier: workspace:*
         version: link:../../packages/escrow-react
-      '@repo/tailwind-config':
-        specifier: workspace:*
-        version: link:../../packages/tailwind-config
       '@tailwindcss/vite':
         specifier: 'catalog:'
         version: 4.1.7(vite@6.3.5(@types/node@22.15.18)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.19.4))
@@ -237,9 +234,6 @@ importers:
       '@local-escrow/core':
         specifier: workspace:*
         version: link:../escrow-core
-      '@repo/tailwind-config':
-        specifier: workspace:*
-        version: link:../tailwind-config
       '@tailwindcss/vite':
         specifier: 'catalog:'
         version: 4.1.7(vite@6.3.5(@types/node@22.15.18)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.19.4))
@@ -274,15 +268,6 @@ importers:
       '@types/react-dom':
         specifier: 'catalog:'
         version: 19.1.5(@types/react@19.1.4)
-
-  packages/tailwind-config:
-    devDependencies:
-      tailwindcss:
-        specifier: 'catalog:'
-        version: 4.1.7
-      tw-animate-css:
-        specifier: 'catalog:'
-        version: 1.3.0
 
 packages:
 

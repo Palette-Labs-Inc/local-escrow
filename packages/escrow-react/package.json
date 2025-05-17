@@ -4,11 +4,17 @@
   "description": "React hooks for Local Escrow contracts.",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts",
+      "style": "./src/index.css"
+    },
+    "./style": "./src/index.css"
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "files": ["src"],
+  "style": "./src/index.css",
   "scripts": {
     "build": "tsc -p tsconfig.json --outDir dist"
   },
