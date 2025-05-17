@@ -1,8 +1,7 @@
-import { useEffect } from 'react'
-import { useCallsStatus, useSendCalls } from 'wagmi'
 import type { Address } from 'ox'
-
 import SimpleEscrow from '../contracts/SimpleEscrow.ts'
+import { useEscrowAction } from '../hooks/useEscrowAction.ts'
+import { encodeFunctionData } from 'viem'
 
 export interface UseActionParameters {
   escrowAddress: Address.Address
@@ -10,25 +9,11 @@ export interface UseActionParameters {
 }
 
 export function useAction({ escrowAddress, onSuccess }: UseActionParameters) {
-  const { isPending, sendCalls, data: txId } = useSendCalls()
-  const { data: statusData } = useCallsStatus({
-    id: txId?.id as string,
-    query: {
-      enabled: !!txId?.id,
-      refetchInterval: (query) => (query.state.data?.status === 'success' ? false : 1_000),
-    },
+  return useEscrowAction({
+    onSuccess,
+    buildCalls: () => [{
+      to: escrowAddress,
+      data: encodeFunctionData({ abi: SimpleEscrow.abi, functionName: 'removeDispute' }),
+    }],
   })
-
-  useEffect(() => {
-    if (statusData?.status === 'success') onSuccess()
-  }, [statusData, onSuccess])
-
-  function handle() {
-    sendCalls({ calls: [{ to: escrowAddress, abi: SimpleEscrow.abi, functionName: 'removeDispute' }] })
-  }
-
-  return {
-    isPending,
-    handle,
-  } as const
 } 

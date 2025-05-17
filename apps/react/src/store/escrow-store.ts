@@ -2,20 +2,21 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { StateStorage } from 'zustand/middleware'
 import { storage } from './storage'
+import type { Address, Hex } from 'ox'
 
 export interface EscrowEventInfo {
-  escrowAddress: `0x${string}`
-  payee: `0x${string}`
-  storefront: `0x${string}`
-  arbiter: `0x${string}`
+  escrowAddress: Address.Address
+  payee: Address.Address
+  storefront: Address.Address
+  arbiter: Address.Address
   blockNumber?: bigint
-  transactionHash?: `0x${string}`
+  transactionHash?: Hex.Hex
 }
 
 interface EscrowStore {
-  eventsByAccount: Record<`0x${string}`, EscrowEventInfo[]>
-  addEvent: (account: `0x${string}`, event: EscrowEventInfo) => void
-  clearEvents: (account: `0x${string}`) => void
+  eventsByAccount: Record<Address.Address, EscrowEventInfo[]>
+  addEvent: (account: Address.Address, event: EscrowEventInfo) => void
+  clearEvents: (account: Address.Address) => void
 }
 
 const zustandStorage: StateStorage = {

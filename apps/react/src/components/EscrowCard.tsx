@@ -1,17 +1,23 @@
-import {
-  Button as AriakitButton,
-} from '@ariakit/react'
+import { Button as AriakitButton } from '@ariakit/react'
 import { useAccount } from 'wagmi'
 import type { EscrowEventInfo } from '../store/escrow-store.ts'
-import * as EscrowInfo from '../lib/EscrowInfo.ts'
 import * as Dispute from '../lib/Dispute.ts'
 import * as RemoveDispute from '../lib/RemoveDispute.ts'
 import { AddressBadge } from './AddressBadge.tsx'
 import { StatusBadge } from './StatusBadge.tsx'
 import { SettleEscrowForm } from './SettleEscrowForm.tsx'
+import { RefundForm } from './RefundForm.tsx'
+import { ResolveDisputeForm } from './ResolveDisputeForm.tsx'
+import * as EscrowInfo from '../lib/EscrowInfo.ts'
 
 const buttonClassName =
-  'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50'
+  'inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium shadow-sm disabled:opacity-50'
+
+const buttonVariantClasses = {
+  primary: 'bg-blue-50 text-blue-700 hover:bg-blue-100',
+  secondary: 'bg-gray-50 text-gray-700 hover:bg-gray-100',
+  danger: 'bg-red-50 text-red-700 hover:bg-red-100',
+}
 
 export interface EscrowCardProps {
   event: EscrowEventInfo
@@ -21,10 +27,24 @@ export function EscrowCard({ event }: EscrowCardProps) {
   const { address: currentUser } = useAccount()
   const { escrowAddress, transactionHash, payee, arbiter, storefront } = event
 
-  // Info -------------------------------------------------------------------
-  const escrowInfo = EscrowInfo.useEscrowInfo({ escrowAddress })
-
-  const { info, status, isLoading, isError, refetch } = escrowInfo
+  const {
+    info,
+    status,
+    userRole,
+    isLoading,
+    isError,
+    refetch,
+    canDispute,
+    canRemoveDispute,
+    canSettle,
+    canRefund,
+    canResolveDispute
+  } = EscrowInfo.useEscrow({
+    escrowAddress,
+    currentUser,
+    payee,
+    arbiter,
+  })
 
   // Actions ---------------------------------------------------------------
   const disputeAction = Dispute.useAction({
@@ -66,33 +86,47 @@ export function EscrowCard({ event }: EscrowCardProps) {
             Storefront: <AddressBadge address={storefront} />
           </li>
           <li>Deadline: {Number(info.settleTime)}</li>
+          <li>Role: {userRole}</li>
         </ul>
       )}
 
       {currentUser && (
         <section className="mt-4">
-          <h4 className="mb-2">Actions</h4>
           <div className="flex flex-wrap gap-2">
-            <AriakitButton
-              className={buttonClassName}
-              disabled={disputeAction.isPending}
-              onClick={disputeAction.handle}
-              type="button"
-            >
-              Dispute
-            </AriakitButton>
+            {canDispute && (
+              <AriakitButton
+                className={`${buttonClassName} ${buttonVariantClasses.danger}`}
+                disabled={disputeAction.isPending}
+                onClick={disputeAction.handle}
+                type="button"
+              >
+                Dispute
+              </AriakitButton>
+            )}
 
-            <AriakitButton
-              className={buttonClassName}
-              disabled={removeDisputeAction.isPending}
-              onClick={removeDisputeAction.handle}
-              type="button"
-            >
-              Remove Dispute
-            </AriakitButton>
+            {canRemoveDispute && (
+              <AriakitButton
+                className={`${buttonClassName} ${buttonVariantClasses.secondary}`}
+                disabled={removeDisputeAction.isPending}
+                onClick={removeDisputeAction.handle}
+                type="button"
+              >
+                Remove Dispute
+              </AriakitButton>
+            )}
           </div>
 
-          <SettleEscrowForm escrowAddress={escrowAddress} onSuccess={refetch} />
+          {canSettle && (
+            <SettleEscrowForm escrowAddress={escrowAddress} onSuccess={refetch} />
+          )}
+
+          {canRefund && (
+            <RefundForm escrowAddress={escrowAddress} onSuccess={refetch} />
+          )}
+
+          {canResolveDispute && (
+            <ResolveDisputeForm escrowAddress={escrowAddress} onSuccess={refetch} />
+          )}
         </section>
       )}
 
@@ -103,7 +137,7 @@ export function EscrowCard({ event }: EscrowCardProps) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            View creation TX
+            View order
           </a>
         </footer>
       )}

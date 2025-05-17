@@ -1,13 +1,14 @@
 import { useEffect } from 'react'
-import { parseEther } from 'viem'
+import { parseEther, encodeFunctionData } from 'viem'
 import { useFormStore } from '@ariakit/react'
 import { Value } from 'ox'
-import { useAccount, useCallsStatus, useSendCalls } from 'wagmi'
+import { useAccount } from 'wagmi'
 import type { Address } from 'ox'
 
 import { useExpBalance } from './Balance.ts'
 import { exp1Abi, exp1Address } from '../contracts/contracts.ts'
 import SimpleEscrow from '../contracts/SimpleEscrow.ts'
+import { useEscrowAction } from '../hooks/useEscrowAction.ts'
 
 // ---------------------------------------------------------------------------
 // useForm
@@ -33,8 +34,9 @@ export function useForm() {
 }
 
 // ---------------------------------------------------------------------------
-// useAction
+// useAction (generic wrapper)
 // ---------------------------------------------------------------------------
+
 export interface UseActionParameters {
   escrowAddress: Address.Address
   amountWei: bigint
@@ -43,38 +45,24 @@ export interface UseActionParameters {
 }
 
 export function useAction({ escrowAddress, amountWei, isAmountInvalid, onSuccess }: UseActionParameters) {
-  const { error, isPending, sendCalls, data: txId } = useSendCalls()
-  const { data: statusData } = useCallsStatus({
-    id: txId?.id as string,
-    query: {
-      enabled: !!txId?.id,
-      refetchInterval: (query) => (query.state.data?.status === 'success' ? false : 1_000),
+  return useEscrowAction({
+    onSuccess,
+    buildCalls: () => {
+      if (isAmountInvalid) return []
+      const transferData = encodeFunctionData({
+        abi: exp1Abi,
+        functionName: 'transfer',
+        args: [escrowAddress, amountWei] as const,
+      })
+      const settleData = encodeFunctionData({
+        abi: SimpleEscrow.abi,
+        functionName: 'settle',
+        args: [exp1Address, amountWei] as const,
+      })
+      return [
+        { to: exp1Address, data: transferData },
+        { to: escrowAddress, data: settleData },
+      ]
     },
   })
-
-  useEffect(() => {
-    if (statusData?.status === 'success') onSuccess()
-  }, [statusData, onSuccess])
-
-  function handle() {
-    if (isPending || isAmountInvalid) return
-    sendCalls({
-      calls: [
-        {
-          to: exp1Address,
-          abi: exp1Abi,
-          functionName: 'transfer',
-          args: [escrowAddress, amountWei],
-        },
-        {
-          to: escrowAddress,
-          abi: SimpleEscrow.abi,
-          functionName: 'settle',
-          args: [exp1Address, amountWei],
-        },
-      ],
-    })
-  }
-
-  return { error, isPending, statusData, handle } as const
 } 
