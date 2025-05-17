@@ -39,4 +39,4 @@ export function useEscrow(params: {
     // permission flags
     ...permissions,
   } as const
-} 
+}
