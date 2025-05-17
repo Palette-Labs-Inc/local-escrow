@@ -15,6 +15,7 @@ import { exp1Address } from "../../contracts/contracts.ts";
 import { exp1Abi } from "../../contracts/contracts.ts";
 import { Value } from "ox";
 
+
 interface EscrowInfo {
   payer: `0x${string}`;
   settled: boolean;
@@ -202,6 +203,20 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
       setAmount(Value.formatEther(balanceRaw));
     }
   }, [balanceRaw, amount]);
+
+  // ---------------------------------------------------------------------------
+  // Keep escrow status badge in sync with on-chain state. Whenever the bundled
+  // calls we send via `sendCalls` get confirmed (`statusData.status ===
+  // "success"`), we refetch the escrow contract reads which in turn updates
+  // the derived `escrowStatus` value and, consequently, the badge rendered in
+  // the header.
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (statusData?.status !== "success") return;
+    // Re-query the contract reads so that the UI reflects the most recent
+    // on-chain state (e.g. `isSettled` toggling to true after a settle call).
+    result.refetch();
+  }, [statusData, result]);
 
   const buttonStyle: React.CSSProperties = { marginRight: "0.5rem" };
 
