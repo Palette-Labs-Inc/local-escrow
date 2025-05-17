@@ -1,4 +1,4 @@
-import * as Balance from '../lib/Balance'
+import * as Balance from '../lib/Balance.js'
 
 export function TokenBalance() {
   const { formatted } = Balance.useExpBalance()

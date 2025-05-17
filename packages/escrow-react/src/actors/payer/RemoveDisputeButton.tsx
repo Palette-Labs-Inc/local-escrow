@@ -1,7 +1,7 @@
 import { Button as AriakitButton } from '@ariakit/react'
 import type { Address } from 'ox'
 
-import * as RemoveDispute from '../../lib/RemoveDispute.ts'
+import * as RemoveDispute from '../../lib/RemoveDispute.js'
 
 export function RemoveDisputeButton(props: RemoveDisputeButton.Props) {
   const { escrowAddress, onSuccess } = props

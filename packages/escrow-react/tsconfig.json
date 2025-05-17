@@ -4,6 +4,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
+    "jsx": "react-jsx",
     "composite": true,
     "module": "NodeNext"
   },

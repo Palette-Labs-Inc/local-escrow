@@ -1,11 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useAccount } from 'wagmi'
-import { Layout } from '../components/Layout'
-import { Account } from '../components/Account'
-import { TokenBalance } from '../components/Balance'
-import { Mint } from '../components/Mint'
-import { Connect } from '../components/Connect'
-import { Permissions } from '../components/Permissions'
+import { Layout } from '@local-escrow/react'
+import { Account, TokenBalance, Mint, Permissions } from '@local-escrow/react'
+import { Connect } from '../components/Connect.js'
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,

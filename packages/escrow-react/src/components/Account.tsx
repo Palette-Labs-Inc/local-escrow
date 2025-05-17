@@ -1,6 +1,6 @@
 import { Hooks } from 'porto/wagmi'
 import { useAccount } from 'wagmi'
-import { truncateHexString } from '../utils'
+import { truncateHexString } from '../utils.js'
 import { Button as AriakitButton } from '@ariakit/react'
 
 export function Account() {

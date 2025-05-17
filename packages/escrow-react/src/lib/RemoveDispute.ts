@@ -1,14 +1,16 @@
 import type { Address } from 'ox'
-import SimpleEscrow from '../../../../packages/contracts/src/SimpleEscrow.ts'
 import { useEscrowAction } from '@local-escrow/react'
 import { encodeFunctionData } from 'viem'
+import { SimpleEscrow } from '@local-escrow/contracts'
 
-export interface UseActionParameters {
+export type UseActionParameters = {
   escrowAddress: Address.Address
   onSuccess: () => void
 }
 
-export function useAction({ escrowAddress, onSuccess }: UseActionParameters) {
+export type UseActionReturn = ReturnType<typeof useEscrowAction>
+
+export function useAction({ escrowAddress, onSuccess }: UseActionParameters): UseActionReturn {
   return useEscrowAction({
     onSuccess,
     buildCalls: () => [{

@@ -3,7 +3,7 @@ import { createConfig, createStorage, http } from 'wagmi'
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
 import { porto } from 'porto/wagmi'
 import { Mode } from 'porto'
-import { storage } from './store/storage'
+import { storage } from './store/storage.js'
 
 export const wagmiConfig = createConfig({
   chains: [baseSepolia],

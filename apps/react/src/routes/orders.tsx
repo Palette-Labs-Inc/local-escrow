@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { EscrowList } from '../components/EscrowList'
-import { Layout } from '../components/Layout'
+import { EscrowList } from '../components/EscrowList.js'
+import { Layout } from '@local-escrow/react'
 
 export const Route = createFileRoute('/orders')({
   component: () => (

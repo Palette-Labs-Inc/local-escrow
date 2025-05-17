@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { StateStorage } from 'zustand/middleware'
-import { storage } from './storage'
+import { storage } from './storage.js'
 import type { Address, Hex } from 'ox'
 
-export interface EscrowEventInfo {
+export type EscrowEventInfo = {
   escrowAddress: Address.Address
   payee: Address.Address
   storefront: Address.Address

@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "catalog:",
-    "idb-keyval": "^6.2.2",
+    "idb-keyval": "catalog:",
     "ox": "catalog:",
     "porto": "catalog:",
     "react": "catalog:",
@@ -27,7 +27,8 @@
     "zustand": "catalog:",
     "@tanstack/react-router": "catalog:",
     "@local-escrow/core": "workspace:*",
-    "@local-escrow/react": "workspace:*"
+    "@local-escrow/react": "workspace:*",
+    "@local-escrow/contracts": "workspace:*"
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "catalog:",

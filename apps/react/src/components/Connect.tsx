@@ -1,7 +1,7 @@
 import { Hooks } from 'porto/wagmi'
 import { useConnectors } from 'wagmi'
 import { Button as AriakitButton } from '@ariakit/react'
-import { permissions } from '../constants'
+import { permissions } from '../constants.js'
 
 export function Connect() {
   const connectors = useConnectors()

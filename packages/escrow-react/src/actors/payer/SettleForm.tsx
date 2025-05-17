@@ -5,7 +5,7 @@ import {
 } from '@ariakit/react'
 import type { Address } from 'ox'
 
-import * as Settle from '../../lib/Settle.ts'
+import * as Settle from '../../lib/Settle.js'
 
 const buttonClassName =
   'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50'
@@ -52,7 +52,9 @@ export function SettleForm({ escrowAddress, onSuccess }: SettleForm.Props) {
       {isAmountInvalid && (
         <small className="text-red-600">Enter a valid amount ≤ balance</small>
       )}
-      {error && <div className="text-red-600">{error.message}</div>}
+      {error instanceof Error && (
+        <div className="text-red-600">{error.message}</div>
+      )}
       {(statusData as { status?: string } | undefined)?.status && (
         <small>Tx status: {(statusData as { status?: string }).status}</small>
       )}

@@ -1,9 +1,10 @@
+import type { Address } from 'ox'
+import { truncateHexString } from '../utils.js'
+
 export interface AddressBadgeProps {
-  address: import('ox').Address.Address
+  address: Address.Address
   length?: number
 }
-
-import { truncateHexString } from '../utils.ts'
 
 export function AddressBadge({ address, length = 6 }: AddressBadgeProps) {
   const truncated = truncateHexString({ address, length })

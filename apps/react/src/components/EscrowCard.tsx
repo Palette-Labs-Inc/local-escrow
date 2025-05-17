@@ -1,12 +1,7 @@
 import { useAccount } from 'wagmi'
-import type { EscrowEventInfo } from '../store/escrow-store.ts'
-import { AddressBadge } from './AddressBadge.tsx'
-import { StatusBadge } from './StatusBadge.tsx'
-import * as EscrowInfo from '../lib/EscrowInfo.ts'
-
-import { Widgets as PayerWidgets } from '../actors/payer/Widgets.tsx'
-import { Widgets as PayeeWidgets } from '../actors/payee/Widgets.tsx'
-import { Widgets as ArbiterWidgets } from '../actors/arbiter/Widgets.tsx'
+import { AddressBadge, StatusBadge, Payer, Payee, Arbiter } from '@local-escrow/react'
+import * as EscrowInfo from '@local-escrow/react'
+import type { EscrowEventInfo } from '../store/escrow-store.js'
 
 export interface EscrowCardProps {
   event: EscrowEventInfo
@@ -73,21 +68,21 @@ export function EscrowCard({ event }: EscrowCardProps) {
       {currentUser && (
         <section className="mt-4">
           {userRole === 'payer' && (
-            <PayerWidgets
+            <Payer.Widgets
               escrowAddress={escrowAddress}
               onSuccess={onSuccess}
               permissions={{ canDispute, canRemoveDispute, canSettle, canRefund, canResolveDispute }}
             />
           )}
           {userRole === 'payee' && (
-            <PayeeWidgets
+            <Payee.Widgets
               escrowAddress={escrowAddress}
               onSuccess={onSuccess}
               permissions={{ canDispute, canRemoveDispute, canSettle, canRefund, canResolveDispute }}
             />
           )}
           {userRole === 'arbiter' && (
-            <ArbiterWidgets
+            <Arbiter.Widgets
               escrowAddress={escrowAddress}
               onSuccess={onSuccess}
               permissions={{ canDispute, canRemoveDispute, canSettle, canRefund, canResolveDispute }}

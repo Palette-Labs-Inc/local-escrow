@@ -1,6 +1,6 @@
 import type { Address } from 'ox'
-import { ResolveDisputeForm } from './ResolveDisputeForm.tsx'
-import type { EscrowPermissionFlags } from '@local-escrow/react'
+import { ResolveDisputeForm } from './ResolveDisputeForm.js'
+import type { EscrowPermissionFlags } from '../../hooks/useEscrowPermissions.js'
 
 export function Widgets({ escrowAddress, onSuccess, permissions }: Widgets.Props) {
   if (!permissions.canResolveDispute) return null

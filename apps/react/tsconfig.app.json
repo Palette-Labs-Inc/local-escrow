@@ -19,5 +19,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "../../packages/contracts/src/EscrowFactory.ts", "../../packages/contracts/src/SimpleEscrow.ts", "../../packages/contracts/src/contracts.ts"]
+  "include": ["src", "../../packages/contracts/src/EscrowFactory.ts", "../../packages/contracts/src/SimpleEscrow.ts", "../../packages/contracts/src/contracts.ts", "../../packages/escrow-react/src/store", "../../packages/escrow-react/src/components/Account.tsx", "../../packages/escrow-react/src/components/AddressBadge.tsx", "../../packages/escrow-react/src/components/Balance.tsx", "../../packages/escrow-react/src/components/Connect.tsx", "src/components/CreateEscrow.tsx", "src/components/EscrowCard.tsx", "src/components/EscrowItem.tsx", "src/components/EscrowList.tsx", "../../packages/escrow-react/src/components/Layout.tsx", "../../packages/escrow-react/src/components/Mint.tsx", "../../packages/escrow-react/src/components/Permissions.tsx"]
 }

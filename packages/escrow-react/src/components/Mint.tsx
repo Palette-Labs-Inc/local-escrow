@@ -1,5 +1,5 @@
 import { parseEther } from 'viem'
-import { exp1Address, exp1Config } from '../../../../packages/contracts/src/contracts'
+import { exp1Address, exp1Config } from '@local-escrow/contracts'
 import { useAccount, useSendCalls, useWaitForCallsStatus, type BaseError } from 'wagmi'
 import { Button as AriakitButton } from '@ariakit/react'
 

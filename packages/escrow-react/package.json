@@ -15,7 +15,11 @@
     "react": "catalog:",
     "wagmi": "catalog:",
     "viem": "catalog:",
-    "ox": "catalog:"
+    "ox": "catalog:",
+    "@ariakit/react": "catalog:",
+    "zustand": "catalog:",
+    "idb-keyval": "catalog:",
+    "porto": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",

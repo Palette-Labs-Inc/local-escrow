@@ -1,5 +1,5 @@
 import type { Address } from 'ox'
-import SimpleEscrow from '../../../../packages/contracts/src/SimpleEscrow.ts'
+import { SimpleEscrow } from '@local-escrow/contracts'
 import { useEscrowAction } from '@local-escrow/react'
 import { encodeFunctionData } from 'viem'
 

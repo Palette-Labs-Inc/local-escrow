@@ -12,6 +12,8 @@ export type EscrowAction =
 
 export interface EscrowInfo {
   payer: Address.Address
+  payee: Address.Address
+  arbiter: Address.Address
   settled: boolean
   disputed: boolean
   settleTime: bigint

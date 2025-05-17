@@ -1,8 +1,8 @@
 import type { Address } from 'ox'
-import { DisputeButton } from './DisputeButton.tsx'
-import { RemoveDisputeButton } from './RemoveDisputeButton.tsx'
-import { SettleForm } from './SettleForm.tsx'
-import type { EscrowPermissionFlags } from '@local-escrow/react'
+import { DisputeButton } from './DisputeButton.js'
+import { RemoveDisputeButton } from './RemoveDisputeButton.js'
+import { SettleForm } from './SettleForm.js'
+import type { EscrowPermissionFlags } from '../../hooks/useEscrowPermissions.js'
 
 export function Widgets(props: Widgets.Props) {
   const { escrowAddress, onSuccess, permissions } = props

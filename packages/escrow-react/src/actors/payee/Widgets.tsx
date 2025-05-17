@@ -1,6 +1,6 @@
 import type { Address } from 'ox'
-import { RefundForm } from './RefundForm.tsx'
-import type { EscrowPermissionFlags } from '@local-escrow/react'
+import { RefundForm } from './RefundForm.js'
+import type { EscrowPermissionFlags } from '../../hooks/useEscrowPermissions.js'
 
 export function Widgets({ escrowAddress, onSuccess, permissions }: Widgets.Props) {
   if (!permissions.canRefund) return null

@@ -1,9 +1,9 @@
 import { RouterProvider } from '@tanstack/react-router'
 import { WagmiProvider } from 'wagmi'
-import { queryClient, wagmiConfig } from './config.ts'
+import { queryClient, wagmiConfig } from './config.js'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import * as Router from './lib/Router'
+import * as Router from './lib/Router.js'
 
 export function App() {
   return (
@@ -15,4 +15,3 @@ export function App() {
   </WagmiProvider>
   )
 }
-

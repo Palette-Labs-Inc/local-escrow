@@ -12,7 +12,14 @@ export interface UseEscrowActionParameters {
   onSuccess: () => void
 }
 
-export function useEscrowAction({ buildCalls, onSuccess }: UseEscrowActionParameters) {
+export interface UseEscrowActionResult {
+  isPending: boolean
+  error: unknown
+  statusData: unknown
+  handle: () => void
+}
+
+export function useEscrowAction({ buildCalls, onSuccess }: UseEscrowActionParameters): UseEscrowActionResult {
   const { sendCalls, isPending, error, data: txId } = useSendCalls()
 
   const { data: statusData } = useCallsStatus({
@@ -33,5 +40,5 @@ export function useEscrowAction({ buildCalls, onSuccess }: UseEscrowActionParame
     sendCalls({ calls })
   }, [isPending, buildCalls, sendCalls])
 
-  return { isPending, error, statusData, handle } as const
-} 
+  return { isPending, error, statusData, handle }
+}

@@ -7,7 +7,7 @@ import {
 import { parseEther } from 'viem'
 import type { Address } from 'ox'
 
-import * as Refund from '../../lib/Refund.ts'
+import * as Refund from '../../lib/Refund.js'
 
 const buttonClassName =
   'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50'
