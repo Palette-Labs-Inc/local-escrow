@@ -1,12 +1,11 @@
 {
-  "name": "@nosh/minimal-pds",
+  "name": "minimal-pds",
   "packageManager": "yarn@4.3.1",
   "scripts": {
     "dev": "tsx watch --clear-screen=false src/index.ts | pino-pretty",
     "typecheck": "tsc --noEmit",
     "lexgen": "lex gen-server ./src/lexicon ../../packages/lexicon/com/atproto/*/*  --yes",
-    "test": "jest",
-    "postinstall": "cd node_modules/better-sqlite3 && pnpm run build-release"
+    "test": "jest"
   },
   "devDependencies": {
     "@atproto/lex-cli": "^0.7.1",
@@ -24,6 +23,7 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "lexicon": "workspace:*",
     "@atproto/api": "^0.14.20",
     "@atproto/repo": "^0.8.0",
     "@atproto/uri": "^0.1.1",
