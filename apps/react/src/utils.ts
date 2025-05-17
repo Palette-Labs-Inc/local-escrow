@@ -1,15 +1,17 @@
-import { Value } from 'ox'
+import { type Address, Value } from 'ox'
+import { zeroAddress } from 'viem';
 
 export function truncateHexString({
   address,
   length = 6,
 }: {
-  address: string
+  address?: Address.Address
   length?: number
 }) {
+  if (!address) return zeroAddress;
   return length > 0
     ? `${address.slice(0, length)}...${address.slice(-length)}`
-    : address
+    : address;
 }
 
 export namespace StringFormatter {

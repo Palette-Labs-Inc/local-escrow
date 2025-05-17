@@ -1,449 +1,183 @@
-import { Hooks } from "porto/wagmi";
-import { exp1Address, exp1Config } from "./contracts/contracts.ts";
-import { useAccount, useConnectors } from "wagmi";
-import { truncateHexString } from "./utils.ts";
-import { type Errors, Json } from "ox";
-import { permissions } from "./constants.ts";
+import { Hooks } from 'porto/wagmi'
+import { parseEther } from 'viem'
 import {
-	useEffect,
-	useState,
-} from "react";
+  type BaseError,
+  useAccount,
+  useConnectors,
+  useSendCalls,
+  useWaitForCallsStatus,
+} from 'wagmi'
 import {
-	useCallsStatus,
-	useSendCalls,
-} from "wagmi";
-import {
-	encodeFunctionData,
-	parseEther,
-	type Log,
-	decodeEventLog,
-} from "viem";
-import { Button as AriakitButton } from "@ariakit/react";
-import EscrowFactory from "./contracts/EscrowFactory.ts";
-import { useEscrowStore } from "./store/escrow-store.ts";
-import { useExpBalance } from "./lib/Balance.ts";
-import { EscrowList } from "./components/EscrowList.tsx";
-import { Account } from "./components/Account.tsx";
-import { useAccountInfo, useLogin, useSignup, useLogout } from "./lib/Account.ts";
-
-// Define button style for reuse
-const buttonClassName = "inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50";
-
-const key = () =>
-	({
-		expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
-		permissions: {
-			calls: [
-				{
-					to: exp1Address,
-				},
-			],
-			spend: [
-				{
-					limit: parseEther("50"),
-					period: "minute",
-					token: exp1Address,
-				},
-			],
-		},
-	}) as const;
-
-	
-const key2 = () =>
-	({
-		expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
-		permissions: {
-			calls: [
-				{
-					to: EscrowFactory.address,
-				},
-			],
-      		spend: [
-				{
-					limit: parseEther("50"),
-					period: "minute",
-					token: exp1Address,
-				},
-			],
-		},
-	}) as const;
+  Button as AriakitButton,
+} from "@ariakit/react"
+import { exp1Address, exp1Config } from './contracts/contracts'
+import * as Balance from './lib/Balance'
+import { permissions } from './constants'
+import { truncateHexString } from './utils'
 
 export function App() {
-	const label = `local-protocol-${Math.floor(Date.now() / 1_000)}`;
-	const [grantPermissions, setGrantPermissions] = useState<boolean>(true);
-
-	const { connector, address, latestPermissions } = useAccountInfo();
-	const loginMutation = useLogin();
-	const signupMutation = useSignup();
-	const logoutMutation = useLogout();
-
-	const isConnectPending = loginMutation.isPending || signupMutation.isPending;
-	const isDisconnectPending = logoutMutation.isPending;
-	const connectStatus = loginMutation.status !== "idle" ? loginMutation.status : signupMutation.status;
-	const connectError = loginMutation.error || signupMutation.error;
-
-	return (
-		<main className="p-4 bg-gray-100 min-h-screen">
-			<hr />
-			<Account error={connectError?.message}>
-				<Account.Header status={connectStatus} />
-				
-				<Account.Controls
-					grantPermissions={grantPermissions}
-					onTogglePermissions={() => setGrantPermissions(prev => !prev)}
-				/>
-
-				<div className="flex gap-2">
-					{connector && !address && (
-						<>
-							<Account.Login
-								isConnectPending={isConnectPending}
-								onLogin={() => loginMutation.login({ grantPermissions })}
-							/>
-							<Account.Signup
-								isConnectPending={isConnectPending}
-								onSignup={() => signupMutation.signup({ grantPermissions, label })}
-							/>
-						</>
-					)}
-					{address && (
-						<>
-							<Account.Address address={address} />
-							<Account.Logout
-								isDisconnectPending={isDisconnectPending}
-								onLogout={logoutMutation.logout}
-							/>
-						</>
-					)}
-				</div>
-
-				{address && latestPermissions && (
-					<Account.Details
-						publicKey={latestPermissions.key.publicKey}
-						expiry={latestPermissions.expiry}
-						id={latestPermissions.id}
-						permissions={latestPermissions}
-					/>
-				)}
-			</Account>
-			<hr />
-			<GrantCreateEscrowPermissions />
-			<hr />
-			<Mint />
-			<hr />
-			<CreateEscrow />
-			<hr />
-			<EscrowList />
-		</main>
-	);
+  const { isConnected } = useAccount()
+  return (
+    <div className="max-w-2xl mx-auto p-6 space-y-8">
+      <Account />
+      {isConnected ? (
+        <div className="space-y-8">
+          <AccountBalance />
+          <Mint />
+        </div>
+      ) : (
+        <Connect />
+      )}
+    </div>
+  )
 }
 
+function Account() {
+  const account = useAccount()
+  const disconnect = Hooks.useDisconnect()
 
-function GrantCreateEscrowPermissions() {
-	const grantPermissions = Hooks.useGrantPermissions();
+  return (
+    <section className="rounded-lg border border-gray-200 p-4">
+      <h2 className="text-xl font-semibold mb-4">Account</h2>
 
-	return (
-		<div>
-			<h2>Grant Permissions to Create Escrow</h2>
-			<AriakitButton 
-				onClick={() => grantPermissions.mutate(key2())} 
-				type="button"
-				className={buttonClassName}
-			>
-				Grant Permissions
-			</AriakitButton>
-			{grantPermissions.data && <div>Permissions granted.</div>}
-			{grantPermissions.error && (
-				<div>
-					Error:{" "}
-					{grantPermissions.error.shortMessage ||
-						grantPermissions.error.message}
-				</div>
-			)}
-		</div>
-	);
+      <div className="space-y-2 text-sm mb-4">
+        <div>
+          <span className="text-gray-600">Account: </span>
+          <span className="font-mono">{truncateHexString({ address: account.address, length: 10 })}</span>
+        </div>
+        <div>
+          <span className="text-gray-600">Chain ID: </span>
+          <span className="font-mono">{account.chainId}</span>
+        </div>
+        <div>
+          <span className="text-gray-600">Status: </span>
+          <span className="inline-block rounded-full px-3 py-1 text-xs font-semibold bg-blue-50 text-blue-700">
+            {account.status}
+          </span>
+        </div>
+      </div>
+
+      {account.status !== 'disconnected' && (
+        <AriakitButton
+          onClick={() => disconnect.mutate({})}
+          className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50"
+        >
+          Disconnect
+        </AriakitButton>
+      )}
+    </section>
+  )
+}
+
+function Connect() {
+  const connectors = useConnectors()
+  const connect = Hooks.useConnect()
+
+  return (
+    <section className="rounded-lg border border-gray-200 p-4">
+      <h2 className="text-xl font-semibold mb-4">Connect</h2>
+      <div className="space-y-4">
+        {connectors
+          .filter((x) => x.id === 'xyz.ithaca.porto')
+          ?.map((connector) => (
+            <div key={connector.uid}>
+              <AriakitButton
+                onClick={() => {
+					connect.mutate({ 
+						connector, 
+						grantPermissions: permissions(),
+					})
+				}}
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50"
+              >
+                Connect
+              </AriakitButton>
+            </div>
+          ))}
+        {connect.status && (
+          <div className="text-sm text-gray-600">Status: {connect.status}</div>
+        )}
+        {connect.error && (
+          <div className="text-sm text-red-600">{connect.error.message}</div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function AccountBalance() {
+  const { formatted } = Balance.useExpBalance()
+
+  return (
+    <section className="rounded-lg border border-gray-200 p-4">
+      <h2 className="text-xl font-semibold mb-4">Balance</h2>
+      <div className="text-lg">
+        <span className="text-gray-600">Balance: </span>
+        <span className="font-semibold">{formatted} EXP</span>
+      </div>
+    </section>
+  )
 }
 
 function Mint() {
-	const { address } = useAccount();
+  const { address } = useAccount()
+  const { data, error, isPending, sendCalls } = useSendCalls()
 
-	const { data: id, error, isPending, sendCalls } = useSendCalls();
-	const {
-		data: callsStatusData,
-		isLoading: isConfirming,
-		isSuccess: isConfirmed,
-	} = useCallsStatus({
-		id: id?.id as string,
-		query: {
-			enabled: !!id,
-			refetchInterval: (query) => {
-				if (query.state.data?.status === "success") return false;
-				return 1_000;
-			},
-		},
-	});
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForCallsStatus({
+      id: data?.id,
+    })
 
-	const { formatted: balance } = useExpBalance();
-	const [transactions, setTransactions] = useState<Set<string>>(new Set());
+  if (!address) return null;
+  
+  return (
+    <section className="rounded-lg border border-gray-200 p-4">
+      <h2 className="text-xl font-semibold mb-4">Mint EXP</h2>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          sendCalls({
+            calls: [
+              {
+                ...exp1Config,
+                args: [address, parseEther('100')],
+                functionName: 'mint',
+                to: exp1Address,
+              },
+            ],
+          })
+        }}
+        className="space-y-4"
+      >
+        <AriakitButton
+          disabled={isPending}
+          type="submit"
+          className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50"
+        >
+          {isPending ? 'Confirming...' : 'Mint 100 EXP'}
+        </AriakitButton>
 
-	useEffect(() => {
-		if (callsStatusData?.status !== "success") return;
-		const receipts = (
-			callsStatusData as {
-				receipts?: { transactionHash?: string }[];
-			} | undefined
-		)?.receipts ?? [];
-		const hashes = receipts
-			.map((r) => r.transactionHash)
-			.filter((h): h is string => Boolean(h));
-		if (hashes.length) {
-			setTransactions((prev) => new Set([...prev, ...hashes]));
-		}
-	}, [callsStatusData]);
-
-	useEffect(() => {
-		if (id) {
-			console.info("[Mint] useSendCalls response", id);
-		}
-	}, [id]);
-
-	useEffect(() => {
-		if (error) {
-			console.error("[Mint] Error", error);
-		}
-	}, [error]);
-
-	if (!address) return null;
-
-	return (
-		<div>
-			<h3>Mint EXP [balance: {balance}]</h3>
-			<form
-				onSubmit={(event) => {
-					event.preventDefault();
-					sendCalls({
-						calls: [
-							{
-								...exp1Config,
-								args: [address, parseEther("100")],
-								functionName: "mint",
-								to: exp1Address,
-							},
-						],
-					});
-				}}
-			>
-				<AriakitButton
-					type="submit"
-					disabled={isPending}
-					className={buttonClassName}
-					style={{ marginBottom: "5px" }}
-				>
-					{isPending ? "Confirming..." : "Mint 100 EXP"}
-				</AriakitButton>
-			</form>
-			<ul style={{ listStyleType: "none", padding: 0 }}>
-				{Array.from(transactions).map((tx) => (
-					<li key={tx}>
-						<a
-							target="_blank"
-							rel="noopener noreferrer"
-							href={`https://sepolia.basescan.org/tx/${tx}`}
-						>
-							{tx}
-						</a>
-					</li>
-				))}
-			</ul>
-			<p>{isConfirming && "Waiting for confirmation..."}</p>
-			<p>{isConfirmed && "Transaction confirmed."}</p>
-			{error && (
-				<div>
-					Error: {(error as Errors.BaseError).shortMessage || error.message}
-				</div>
-			)}
-			{id && (
-				<details style={{ marginTop: "5px" }}>
-					<summary>
-						<span style={{ marginRight: "8px" }}>useSendCalls response:</span>
-						{truncateHexString({
-							address:
-								typeof id === "string" ? id : (id as { id: string }).id,
-							length: 12,
-						})}
-					</summary>
-					<pre>{Json.stringify(id, undefined, 2)}</pre>
-				</details>
-			)}
-		</div>
-	);
-}
-
-function CreateEscrow() {
-	const { address } = useAccount();
-	const { addEvent } = useEscrowStore();
-
-	const { data: id, error, isPending, sendCalls } = useSendCalls();
-	const {
-		data: callsStatusData,
-		isLoading: isConfirming,
-		isSuccess: isConfirmed,
-	} = useCallsStatus({
-		id: id?.id as string,
-		query: {
-			enabled: !!id,
-			refetchInterval: (query) => {
-				if (query.state.data?.status === "success") return false;
-				return 1_000;
-			},
-		},
-	});
-
-	const [transactions, setTransactions] = useState<Set<string>>(new Set());
-
-	useEffect(() => {
-		if (!address || callsStatusData?.status !== "success") return;
-		const receipts = (
-			callsStatusData as {
-				receipts?: { transactionHash?: string; logs?: Log[] }[];
-			} | undefined
-		)?.receipts ?? [];
-		const hashes = receipts
-			.map((r) => r.transactionHash)
-			.filter((h): h is string => Boolean(h));
-		if (hashes.length) {
-			setTransactions((prev) => new Set([...prev, ...hashes]));
-		}
-
-		for (const receipt of receipts) {
-			for (const log of receipt.logs ?? []) {
-				if (
-					log.address.toLowerCase() !== EscrowFactory.address.toLowerCase()
-				)
-					continue;
-
-				try {
-					const { args } = decodeEventLog({
-						abi: EscrowFactory.abi,
-						data: log.data,
-						topics: log.topics,
-					});
-					// viem may return args as an array or object; we assume object here.
-					// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-					const argObj = args as unknown as Record<string, unknown>;
-					const escrowAddress = argObj.escrowAddress as `0x${string}`;
-					const payee = argObj.payee as `0x${string}`;
-					const storefront = argObj.storefront as `0x${string}`;
-					const arbiter = argObj.arbiter as `0x${string}`;
-
-					addEvent(address, {
-						escrowAddress,
-						payee,
-						storefront,
-						arbiter,
-						blockNumber: log.blockNumber ?? undefined,
-						transactionHash: receipt.transactionHash as `0x${string}`,
-					});
-
-					console.info("[CreateEscrow] Decoded EscrowCreated from receipt", {
-						escrowAddress,
-						payee,
-						storefront,
-						arbiter,
-					});
-				} catch {
-					// ignore decoding errors
-				}
-			}
-		}
-	}, [callsStatusData, addEvent, address]);
-
-	// Track callsStatusData updates
-	useEffect(() => {
-		if (callsStatusData?.status !== "success") return;
-		// eslint-disable-next-line no-console
-		console.info("[CreateEscrow] callsStatusData", callsStatusData);
-	}, [callsStatusData]);
-
-	// Additional log for each status change
-	useEffect(() => {
-		if (!id?.id) return;
-		// eslint-disable-next-line no-console
-		console.debug("[CreateEscrow] Status update", {
-			id: id.id,
-			isConfirming,
-			isConfirmed,
-		});
-	}, [id?.id, isConfirming, isConfirmed]);
-
-	if (!address) return null;
-
-	const calldata = encodeFunctionData({
-		abi: EscrowFactory.abi,
-		functionName: "createEscrow",
-		args: [address, address, address],
-	});
-
-	return (
-		<div>
-			<h3>[client] Create Escrow</h3>
-			<form
-				onSubmit={(event) => {
-					event.preventDefault();
-					// eslint-disable-next-line no-console
-					console.info("[CreateEscrow] Submitting sendCalls", { data: calldata });
-					sendCalls({
-						calls: [
-							{
-								data: calldata,
-								to: EscrowFactory.address,
-							},
-						],
-					});
-				}}
-			>
-				<AriakitButton
-					type="submit"
-					disabled={isPending}
-					className={buttonClassName}
-					style={{ marginBottom: "5px" }}
-				>
-					{isPending ? "Confirming..." : "Create Escrow"}
-				</AriakitButton>
-			</form>
-			<ul style={{ listStyleType: "none", padding: 0 }}>
-				{Array.from(transactions).map((tx) => (
-					<li key={tx}>
-						<a
-							target="_blank"
-							rel="noopener noreferrer"
-							href={`https://sepolia.basescan.org/tx/${tx}`}
-						>
-							{tx}
-						</a>
-					</li>
-				))}
-			</ul>
-			<p>{isConfirming && "Waiting for confirmation..."}</p>
-			<p>{isConfirmed && "Transaction confirmed."}</p>
-			{error && (
-				<div>
-					Error: {(error as Errors.BaseError).shortMessage || error.message}
-				</div>
-			)}
-			{id && (
-				<details style={{ marginTop: "5px" }}>
-					<summary>
-						<span style={{ marginRight: "8px" }}>useSendCalls response:</span>
-						{truncateHexString({
-							address:
-								typeof id === "string" ? id : (id as { id: string }).id,
-							length: 12,
-						})}
-					</summary>
-					<pre>{Json.stringify(id, undefined, 2)}</pre>
-				</details>
-			)}
-		</div>
-	);
+        {data?.id && (
+          <div className="text-sm">
+            <span className="text-gray-600">Transaction Hash: </span>
+            <span className="font-mono">{data.id}</span>
+          </div>
+        )}
+        
+        {isConfirming && (
+          <div className="text-sm text-blue-600">Waiting for confirmation...</div>
+        )}
+        
+        {isConfirmed && (
+          <div className="text-sm text-green-600">Transaction confirmed.</div>
+        )}
+        
+        {error && (
+          <div className="text-sm text-red-600">
+            Error: {(error as BaseError).shortMessage || error.message}
+          </div>
+        )}
+      </form>
+    </section>
+  )
 }

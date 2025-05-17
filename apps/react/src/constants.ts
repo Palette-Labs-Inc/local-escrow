@@ -1,7 +1,8 @@
 import { Hex, Value, P256, PublicKey } from 'ox'
 // import { exp1Address } from './contracts/contracts.ts'
 import EscrowFactory from './contracts/EscrowFactory.ts'
-import { exp1Config as ExperimentERC20 } from './contracts/contracts.ts'
+import { exp1Address, exp1Config as ExperimentERC20 } from './contracts/contracts.ts'
+import { parseEther } from 'viem'
 
 // Base Sepolia chain ID (decimal & hex)
 export const CHAIN_ID_DEC = 84_532
@@ -11,7 +12,7 @@ export const permissions = () =>
 	({
 		chainId: CHAIN_ID_HEX,
 		expiry: Math.floor(Date.now() / 1_000) + 60 * 60 * 24 * 30, // 30 days
-		/*key: {
+		/*key: { // TODO: Test server generated P256 key
 			publicKey: getEscrowPublicKey(),
 			type: 'p256' as const,
 		},*/

@@ -18,12 +18,14 @@
     "viem": "catalog:",
     "wagmi": "catalog:",
     "@tanstack/router-plugin": "catalog:",
+    "@tanstack/react-router-devtools": "catalog:",
     "@ariakit/react": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "tailwindcss": "catalog:",
     "tw-animate-css": "catalog:",
     "lucide-react": "catalog:",
-    "zustand": "catalog:"
+    "zustand": "catalog:",
+    "@tanstack/react-router": "catalog:"
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "catalog:",
