@@ -62,6 +62,54 @@ function AddressBadge({ address, length = 6 }: AddressBadgeProps) {
   );
 }
 
+// -----------------------------------------------------------------------------
+// Helper – human-readable status badge for escrow state.
+// -----------------------------------------------------------------------------
+
+type EscrowStatus = "settled" | "disputed" | "pending";
+
+interface StatusBadgeProps {
+  status: EscrowStatus;
+}
+
+function StatusBadge({ status }: StatusBadgeProps) {
+  const map: Record<EscrowStatus, { label: string; color: string; background: string }> = {
+    settled: {
+      label: "Settled",
+      color: "#0a8754", // darker green text
+      background: "#dbf5e6", // light green background
+    },
+    disputed: {
+      label: "Disputed",
+      color: "#c92a2a", // dark red text
+      background: "#ffe3e3", // light red background
+    },
+    pending: {
+      label: "Pending",
+      color: "#1a5cff", // dark blue text
+      background: "#e6f0ff", // light blue background
+    },
+  };
+
+  const { label, color, background } = map[status];
+
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        padding: "0.25rem 0.75rem",
+        borderRadius: 9999,
+        fontWeight: 600,
+        fontSize: "0.8rem",
+        backgroundColor: background,
+        color,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
 export function EscrowItem({ event }: { event: EscrowEventInfo }) {
   const { address: currentUser } = useAccount();
   const {
@@ -94,6 +142,14 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
     const [payerRes, settledRes, disputedRes, settleTimeRes] = data.map((d) => (d as { result: unknown }).result) as [`0x${string}`, boolean, boolean, bigint];
     return { payer: payerRes, settled: settledRes, disputed: disputedRes, settleTime: settleTimeRes };
   }, [data, isLoading, isError]);
+
+  // Derive a friendly status label
+  const escrowStatus: EscrowStatus | undefined = useMemo(() => {
+    if (!escrowInfo) return undefined;
+    if (escrowInfo.settled) return "settled";
+    if (escrowInfo.disputed) return "disputed";
+    return "pending";
+  }, [escrowInfo]);
 
   /** ----------------------------------------------------------------------------------
    * Actions – each call goes through porto delegated signer via useSendCalls.
@@ -157,9 +213,20 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
         padding: "1rem",
       }}
     >
-      <header style={{ marginBottom: "0.5rem" }}>
-        <strong>Escrow </strong>
-        <AddressBadge address={escrowAddress} length={10} />
+      <header
+        style={{
+          marginBottom: "0.5rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "0.5rem",
+        }}
+      >
+        <div>
+          <strong>Escrow </strong>
+          <AddressBadge address={escrowAddress} length={10} />
+        </div>
+        {escrowStatus && <StatusBadge status={escrowStatus} />}
       </header>
 
       {isLoading && <small>Fetching escrow state…</small>}
@@ -179,8 +246,6 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
           <li>
             Storefront: <AddressBadge address={storefront} />
           </li>
-          <li>Settled: {String(escrowInfo.settled)}</li>
-          <li>Disputed: {String(escrowInfo.disputed)}</li>
           <li>Deadline: {Number(escrowInfo.settleTime)}</li>
         </ul>
       )}
