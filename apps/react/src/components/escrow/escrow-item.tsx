@@ -4,16 +4,16 @@ import {
   useReadContracts,
   useSendCalls,
   useCallsStatus,
+  useReadContract,
   type UseReadContractsReturnType,
 } from "wagmi";
 import { truncateHexString } from "../../utilities.ts";
 import SimpleEscrow from "../../contracts/SimpleEscrow.ts";
-import { parseEther } from "viem";
+import { parseEther, zeroAddress } from "viem";
 import type { EscrowEventInfo } from "../../store/escrow-store.ts";
 import { exp1Address } from "../../contracts/contracts.ts";
 import { exp1Abi } from "../../contracts/contracts.ts";
 import { Value } from "ox";
-import { useBalance } from "../../hooks.ts";
 
 interface EscrowInfo {
   payer: `0x${string}`;
@@ -101,11 +101,19 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
    * ----------------------------------------------------------------------------------*/
   const [amount, setAmount] = useState<string>("");
 
-  // Reuse global balance hook
-  const { raw: balanceRaw } = useBalance();
+  // Fetch current EXP balance (raw bigint) for connected account
+  const { data: balanceRaw } = useReadContract({
+    abi: exp1Abi,
+    address: exp1Address,
+    functionName: "balanceOf",
+    args: [
+      (currentUser ?? zeroAddress),
+    ],
+    query: { enabled: !!currentUser, refetchInterval: 4_000 },
+  });
 
   const amountWei = amount ? parseEther(amount) : 0n;
-  const isAmountInvalid = !amount || amountWei === 0n || balanceRaw < amountWei;
+  const isAmountInvalid = !amount || amountWei === 0n || (balanceRaw ?? 0n) < amountWei;
 
   const {
     data: txId,
