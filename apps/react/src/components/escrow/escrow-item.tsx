@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import {
   useAccount,
   useReadContracts,
@@ -7,111 +7,22 @@ import {
   useReadContract,
   type UseReadContractsReturnType,
 } from "wagmi";
-import { truncateHexString } from "../../utilities.ts";
+import { truncateHexString } from "../../utils.ts";
 import SimpleEscrow from "../../contracts/SimpleEscrow.ts";
 import { parseEther, zeroAddress } from "viem";
 import type { EscrowEventInfo } from "../../store/escrow-store.ts";
 import { exp1Address } from "../../contracts/contracts.ts";
 import { exp1Abi } from "../../contracts/contracts.ts";
 import { Value } from "ox";
+import {
+  useFormStore,
+  Button as AriakitButton,
+  Form as AriakitForm,
+  FormInput as AriakitFormInput,
+  FormSubmit as AriakitFormSubmit,
+} from "@ariakit/react";
 
-
-interface EscrowInfo {
-  payer: `0x${string}`;
-  settled: boolean;
-  disputed: boolean;
-  settleTime: bigint;
-}
-
-// -----------------------------------------------------------------------------
-// Helper – clickable, styled badge that shows a truncated address and links to
-// the Base Sepolia explorer.
-// -----------------------------------------------------------------------------
-
-interface AddressBadgeProps {
-  address: `0x${string}`;
-  /**
-   * Number of hex characters (without 0x) to show at the start/end of the
-   * truncated string. Defaults to 6 which renders e.g. `0x123456…cdefab`.
-   */
-  length?: number;
-}
-
-function AddressBadge({ address, length = 6 }: AddressBadgeProps) {
-  const truncated = truncateHexString({ address, length });
-
-  const style: React.CSSProperties = {
-    display: "inline-block",
-    padding: "0.15rem 0.45rem",
-    borderRadius: 6,
-    backgroundColor: "#e6f0ff",
-    color: "#1a5cff",
-    fontWeight: 500,
-    fontSize: "0.9em",
-    textDecoration: "none",
-  };
-
-  return (
-    <a
-      href={`https://sepolia.basescan.org/address/${address}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={style}
-    >
-      {truncated}
-    </a>
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Helper – human-readable status badge for escrow state.
-// -----------------------------------------------------------------------------
-
-type EscrowStatus = "settled" | "disputed" | "pending";
-
-interface StatusBadgeProps {
-  status: EscrowStatus;
-}
-
-function StatusBadge({ status }: StatusBadgeProps) {
-  const map: Record<EscrowStatus, { label: string; color: string; background: string }> = {
-    settled: {
-      label: "Settled",
-      color: "#0a8754", // darker green text
-      background: "#dbf5e6", // light green background
-    },
-    disputed: {
-      label: "Disputed",
-      color: "#c92a2a", // dark red text
-      background: "#ffe3e3", // light red background
-    },
-    pending: {
-      label: "Pending",
-      color: "#1a5cff", // dark blue text
-      background: "#e6f0ff", // light blue background
-    },
-  };
-
-  const { label, color, background } = map[status];
-
-  return (
-    <span
-      style={{
-        display: "inline-block",
-        padding: "0.25rem 0.75rem",
-        borderRadius: 9999,
-        fontWeight: 600,
-        fontSize: "0.8rem",
-        backgroundColor: background,
-        color,
-      }}
-    >
-      {label}
-    </span>
-  );
-}
-
-export function EscrowItem({ event }: { event: EscrowEventInfo }) {
+export function EscrowItem({ event }: EscrowItem.Props) {
   const { address: currentUser } = useAccount();
   const {
     escrowAddress,
@@ -135,30 +46,23 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
 
   const { data, isLoading, isError } = result;
 
-  const escrowInfo: EscrowInfo | undefined = useMemo(() => {
+  const escrowInfo: EscrowItem.EscrowInfo | undefined = useMemo(() => {
     if (!data || isLoading || isError) return undefined;
-    // Wagmi returns a discriminated union where 'result' exists on success.
-    // We cast for convenience – UI gracefully handles undefined values.
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const [payerRes, settledRes, disputedRes, settleTimeRes] = data.map((d) => (d as { result: unknown }).result) as [`0x${string}`, boolean, boolean, bigint];
     return { payer: payerRes, settled: settledRes, disputed: disputedRes, settleTime: settleTimeRes };
   }, [data, isLoading, isError]);
 
-  // Derive a friendly status label
-  const escrowStatus: EscrowStatus | undefined = useMemo(() => {
+  const escrowStatus: EscrowItem.EscrowStatus | undefined = useMemo(() => {
     if (!escrowInfo) return undefined;
     if (escrowInfo.settled) return "settled";
     if (escrowInfo.disputed) return "disputed";
     return "pending";
   }, [escrowInfo]);
 
-  /** ----------------------------------------------------------------------------------
-   * Actions – each call goes through porto delegated signer via useSendCalls.
-   * We allow the user to (1) dispute, (2) remove dispute, (3) settle with token + amount.
-   * ----------------------------------------------------------------------------------*/
-  const [amount, setAmount] = useState<string>("");
+  const form = useFormStore({ defaultValues: { amount: "" } });
 
-  // Fetch current EXP balance (raw bigint) for connected account
+  const amount = (form.useValue as unknown as (name: string) => string)("amount") ?? "";
+
   const { data: balanceRaw } = useReadContract({
     abi: exp1Abi,
     address: exp1Address,
@@ -179,99 +83,69 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
     sendCalls,
   } = useSendCalls();
 
-  // Link txId -> confirmation status
   const { data: statusData } = useCallsStatus({
     id: txId?.id as string,
     query: {
       enabled: !!txId,
       refetchInterval: (query) => {
         if (query.state.data?.status === "success") return false;
-        return 1_000; // poll every second until success
+        return 1_000;
       },
     },
   });
 
-  // Set a sensible default once balance is fetched
   useEffect(() => {
-    if (amount) return; // respect user input
+    if (amount) return;
     if (balanceRaw === undefined) return;
 
     const tenWei = parseEther("10");
-    if (balanceRaw >= tenWei) {
-      setAmount("10");
-    } else {
-      setAmount(Value.formatEther(balanceRaw));
-    }
-  }, [balanceRaw, amount]);
+    const defaultAmt = balanceRaw >= tenWei ? "10" : Value.formatEther(balanceRaw);
+    form.setValue("amount", defaultAmt);
+  }, [balanceRaw, amount, form]);
 
-  // ---------------------------------------------------------------------------
-  // Keep escrow status badge in sync with on-chain state. Whenever the bundled
-  // calls we send via `sendCalls` get confirmed (`statusData.status ===
-  // "success"`), we refetch the escrow contract reads which in turn updates
-  // the derived `escrowStatus` value and, consequently, the badge rendered in
-  // the header.
-  // ---------------------------------------------------------------------------
+
   useEffect(() => {
     if (statusData?.status !== "success") return;
-    // Re-query the contract reads so that the UI reflects the most recent
-    // on-chain state (e.g. `isSettled` toggling to true after a settle call).
     result.refetch();
   }, [statusData, result]);
 
-  const buttonStyle: React.CSSProperties = { marginRight: "0.5rem" };
-
   return (
-    <article
-      style={{
-        border: "1px solid #ccc",
-        borderRadius: 8,
-        padding: "1rem",
-      }}
-    >
-      <header
-        style={{
-          marginBottom: "0.5rem",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "0.5rem",
-        }}
-      >
+    <article className="border border-gray-200 rounded-lg p-4">
+      <header className="mb-2 flex justify-between items-center gap-2">
         <div>
           <strong>Escrow </strong>
-          <AddressBadge address={escrowAddress} length={10} />
+          <EscrowItem.AddressBadge address={escrowAddress} length={10} />
         </div>
-        {escrowStatus && <StatusBadge status={escrowStatus} />}
+        {escrowStatus && <EscrowItem.StatusBadge status={escrowStatus} />}
       </header>
 
       {isLoading && <small>Fetching escrow state…</small>}
       {isError && <small>Failed to fetch escrow state</small>}
 
       {escrowInfo && (
-        <ul style={{ listStyleType: "none", padding: 0 }}>
+        <ul className="list-none p-0 space-y-1 text-sm">
           <li>
-            Payee: <AddressBadge address={payee} />
+            Payee: <EscrowItem.AddressBadge address={payee} />
           </li>
           <li>
-            Payer: <AddressBadge address={escrowInfo.payer} />
+            Payer: <EscrowItem.AddressBadge address={escrowInfo.payer} />
           </li>
           <li>
-            Arbiter: <AddressBadge address={arbiter} />
+            Arbiter: <EscrowItem.AddressBadge address={arbiter} />
           </li>
           <li>
-            Storefront: <AddressBadge address={storefront} />
+            Storefront: <EscrowItem.AddressBadge address={storefront} />
           </li>
           <li>Deadline: {Number(escrowInfo.settleTime)}</li>
         </ul>
       )}
 
-      {/* Action panel – hidden when wallet not connected */}
       {currentUser && (
-        <section style={{ marginTop: "1rem" }}>
-          <h4 style={{ margin: "0 0 0.5rem 0" }}>Actions</h4>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-            <button
-              style={buttonStyle}
+        <section className="mt-4">
+          <h4 className="mb-2">Actions</h4>
+          <div className="flex flex-wrap gap-2">
+            <AriakitButton
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-2 py-0.5 text-xs font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50"
               disabled={isPending}
               onClick={() =>
                 sendCalls({
@@ -283,10 +157,10 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
               type="button"
             >
               Dispute
-            </button>
+            </AriakitButton>
 
-            <button
-              style={buttonStyle}
+            <AriakitButton
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-2 py-0.5 text-xs font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50"
               disabled={isPending}
               onClick={() =>
                 sendCalls({
@@ -298,89 +172,68 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
               type="button"
             >
               Remove Dispute
-            </button>
+            </AriakitButton>
 
-            {/* Simple settle form */}
-          </div>
+            <AriakitForm
+              store={form}
+              aria-label="Settle escrow"
+              className="mt-3 grid gap-2 md:grid-cols-[repeat(auto-fit,minmax(150px,1fr))]"
+              onSubmit={() => {
+                if (isPending || isAmountInvalid) return;
+                sendCalls({
+                  calls: [
+                    {
+                      to: exp1Address,
+                      abi: exp1Abi,
+                      functionName: "transfer",
+                      args: [escrowAddress, amountWei],
+                    },
+                    {
+                      to: escrowAddress,
+                      abi: SimpleEscrow.abi,
+                      functionName: "settle",
+                      args: [exp1Address, amountWei],
+                    },
+                  ],
+                });
+              }}
+            >
+              <label className="text-sm" htmlFor={String(form.names.amount)}>
+                Amount in EXP
+                <AriakitFormInput
+                  name={form.names.amount}
+                  id={String(form.names.amount)}
+                  placeholder="0.0"
+                  type="number"
+                  className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  required
+                />
+              </label>
 
-          <div style={{
-            marginTop: "0.75rem",
-            display: "grid",
-            gap: "0.5rem",
-            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-          }}>
-            <label style={{ fontSize: "0.85rem" }}>
-              Amount in EXP
-              <input
-                type="number"
-                placeholder="0.0"
-                value={amount}
-                min={0}
-                onChange={(e) => setAmount(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "0.4rem 0.6rem",
-                  borderRadius: 6,
-                  border: "1px solid #ccc",
-                  marginTop: 4,
-                }}
-              />
-            </label>
-
-            <div style={{ display: "flex", alignItems: "flex-end" }}>
-              <button
-                style={buttonStyle}
-                disabled={isPending || isAmountInvalid}
-                onClick={() => {
-                  /*
-                   * Two-step flow:
-                   * 1) transfer EXP from the connected wallet into the escrow contract so that
-                   *    SimpleEscrow holds the funds.
-                   * 2) invoke `settle` on the escrow which will forward the just-deposited
-                   *    tokens to the payee.
-                   *
-                   * Both calls are bundled in a single request via `sendCalls`.
-                   */
-                  sendCalls({
-                    calls: [
-                      {
-                        // Step 1 – move tokens into escrow
-                        to: exp1Address,
-                        abi: exp1Abi,
-                        functionName: "transfer",
-                        args: [escrowAddress, amountWei],
-                      },
-                      {
-                        // Step 2 – settle escrow (will transfer tokens from escrow → payee)
-                        to: escrowAddress,
-                        abi: SimpleEscrow.abi,
-                        functionName: "settle",
-                        args: [exp1Address, amountWei],
-                      },
-                    ],
-                  });
-                }}
-                type="button"
-              >
-                Settle
-              </button>
-            </div>
+              <div className="flex items-end">
+                <AriakitFormSubmit
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-2 py-0.5 text-xs font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50"
+                  disabled={isPending || isAmountInvalid}
+                >
+                  Settle
+                </AriakitFormSubmit>
+              </div>
+            </AriakitForm>
           </div>
 
           {isAmountInvalid && (
-            <small style={{ color: "red" }}>
+            <small className="text-red-600">
               Enter a valid amount ≤ balance
             </small>
           )}
 
-          {error && <div style={{ color: "red" }}>{error.message}</div>}
+          {error && <div className="text-red-600">{error.message}</div>}
           {statusData?.status && <small>Tx status: {statusData.status}</small>}
         </section>
       )}
 
-      {/* TX link (if we got it) */}
       {transactionHash && (
-        <footer style={{ marginTop: "0.5rem" }}>
+        <footer className="mt-2 text-sm">
           <a
             href={`https://sepolia.basescan.org/tx/${transactionHash}`}
             target="_blank"
@@ -392,4 +245,56 @@ export function EscrowItem({ event }: { event: EscrowEventInfo }) {
       )}
     </article>
   );
+}
+
+export namespace EscrowItem {
+  export interface Props {
+    event: EscrowEventInfo;
+  }
+
+  export interface EscrowInfo {
+    payer: `0x${string}`;
+    settled: boolean;
+    disputed: boolean;
+    settleTime: bigint;
+  }
+
+  interface AddressBadgeProps {
+    address: `0x${string}`;
+    length?: number;
+  }
+
+  export function AddressBadge({ address, length = 6 }: AddressBadgeProps) {
+    const truncated = truncateHexString({ address, length });
+    return (
+      <a
+        href={`https://sepolia.basescan.org/address/${address}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-block px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-medium text-sm"
+      >
+        {truncated}
+      </a>
+    );
+  }
+
+  export type EscrowStatus = "settled" | "disputed" | "pending";
+
+  interface StatusBadgeProps {
+    status: EscrowStatus;
+  }
+
+  export function StatusBadge({ status }: StatusBadgeProps) {
+    const map: Record<EscrowStatus, { label: string; className: string }> = {
+      settled: { label: "Settled", className: "bg-green-50 text-green-700" },
+      disputed: { label: "Disputed", className: "bg-red-50 text-red-700" },
+      pending: { label: "Pending", className: "bg-blue-50 text-blue-700" },
+    };
+    const { label, className } = map[status];
+    return (
+      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${className}`}>
+        {label}
+      </span>
+    );
+  }
 } 

@@ -2,7 +2,7 @@ import { useBalance } from "./hooks.ts";
 import { Hooks } from "porto/wagmi";
 import { exp1Address, exp1Config } from "./contracts/contracts.ts";
 import { useAccount, useConnectors } from "wagmi";
-import { truncateHexString } from "./utilities.ts";
+import { truncateHexString } from "./utils.ts";
 import { type Errors, Json } from "ox";
 import { permissions } from "./constants.ts";
 import {
@@ -265,7 +265,7 @@ function EscrowItem({ event }: { event: EscrowEventInfo }) {
 
 export function App() {
 	return (
-		<main>
+		<main className="p-4 bg-gray-100 min-h-screen">
 			<hr />
 			<Connect />
 			<hr />
