@@ -1,12 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { CreateEscrow } from '../components/CreateEscrow'
+import { EscrowList } from '../components/EscrowList'
 import { Layout } from '../components/Layout'
 
-export const Route = createFileRoute('/shop')({
+export const Route = createFileRoute('/orders')({
   component: () => (
     <Layout.Content>
-      <Layout.Header title="Shop" />
-      <CreateEscrow />
+      <Layout.Header title="Orders" />
+      <EscrowList />
     </Layout.Content>
   ),
 }) 

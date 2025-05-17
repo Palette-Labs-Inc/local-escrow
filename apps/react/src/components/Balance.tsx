@@ -8,7 +8,7 @@ export function TokenBalance() {
       <h2 className="text-xl font-semibold mb-4">Balance</h2>
       <div className="text-lg">
         <span className="text-gray-600">Balance: </span>
-        <span className="font-semibold">{formatted} EXP</span>
+        <span className="font-semibold">{formatted}</span>
       </div>
     </section>
   )

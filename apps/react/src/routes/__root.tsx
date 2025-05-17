@@ -14,7 +14,7 @@ function RootLayout() {
       {/* Primary navigation */}
       <header className="border-b border-gray-200 mb-4">
         <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-4">
-          <Link to="/" className="font-bold text-lg">LP Escrow</Link>
+          <Link to="/" className="font-bold text-lg">Consumer</Link>
 
           {isConnected && (
             <Menubar aria-label="Main" className="flex gap-4">
@@ -42,15 +42,25 @@ function RootLayout() {
               >
                 Shop
               </MenuItem>
+              <MenuItem
+                className="px-2 py-1 rounded focus:outline-none"
+                render={
+                  <Link
+                    to="/orders"
+                    className="outline-none"
+                    activeProps={{ className: 'font-semibold text-blue-600' }}
+                  />
+                }
+              >
+                Orders
+              </MenuItem>
             </Menubar>
           )}
         </div>
       </header>
 
-      {/* Render the matched child route */}
       <Outlet />
 
-      {/* Devtools only in development */}
       <TanStackRouterDevtools position="bottom-right" />
     </>
   )

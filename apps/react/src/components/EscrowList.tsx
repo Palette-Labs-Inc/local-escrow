@@ -1,7 +1,7 @@
 import { useAccount } from "wagmi";
 import { useEscrowStore } from "../store/escrow-store.ts";
 import * as EscrowEvents from "../lib/EscrowEvents.ts";
-import { EscrowItem } from "./EscrowItem.tsx";
+import { EscrowCard } from "./EscrowCard.tsx";
 
 export function EscrowList() {
   const { address } = useAccount()
@@ -27,7 +27,7 @@ export function EscrowList() {
       }}
     >
       {events.map((event) => (
-        <EscrowItem key={event.escrowAddress} event={event} />
+        <EscrowCard key={event.escrowAddress} event={event} />
       ))}
     </section>
   );
