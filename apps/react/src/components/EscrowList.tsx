@@ -1,7 +1,7 @@
 import { useAccount } from "wagmi";
-import * as EscrowEvents from "./EscrowEvents.js";
-import { EscrowCard } from "./EscrowCard.js";
-import { useEscrowStore } from "../store/escrow-store.js";
+import * as EscrowEvents from "#/components/EscrowEvents";
+import { EscrowCard } from "#/components/EscrowCard";
+import { useEscrowStore } from "#/store/escrow-store";
 
 export function EscrowList() {
   const { address } = useAccount()

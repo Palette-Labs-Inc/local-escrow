@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { CreateEscrow } from '../components/CreateEscrow'
+import { CreateEscrow } from '#/components/CreateEscrow'
 import { Layout } from '@local-escrow/react'
 
 export const Route = createFileRoute('/shop')({

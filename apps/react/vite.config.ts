@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import mkcert from 'vite-plugin-mkcert'
 import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
+import { resolve } from 'node:path'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -15,4 +16,9 @@ export default defineConfig({
     mkcert(), 
     tailwindcss()
   ],
+  resolve: {
+    alias: {
+      '#': resolve(__dirname, 'src'),
+    },
+  },
 })

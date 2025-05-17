@@ -1,7 +1,7 @@
 import { useAccount, useWatchContractEvent, type UseCallsStatusReturnType } from "wagmi";
 import type { Log } from "viem";
 import { EscrowFactory } from "@local-escrow/contracts";
-import { useEscrowStore } from "../store/escrow-store.js";
+import { useEscrowStore } from "#/store/escrow-store";
 import type { Address, Hex } from "ox";
 
 export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameters) {

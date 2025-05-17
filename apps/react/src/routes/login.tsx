@@ -1,5 +1,5 @@
 import { createFileRoute, Navigate } from '@tanstack/react-router'
-import { Connect } from '../components/Connect.js'
+import { Connect } from '#/components/Connect'
 import { Layout } from '@local-escrow/react'
 import { useAccount } from 'wagmi'
 

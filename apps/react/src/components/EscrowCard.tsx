@@ -1,7 +1,7 @@
 import { useAccount } from 'wagmi'
 import { AddressBadge, StatusBadge, Payer } from '@local-escrow/react'
 import * as EscrowInfo from '@local-escrow/react'
-import type { EscrowEventInfo } from '../store/escrow-store.js'
+import type { EscrowEventInfo } from '#/store/escrow-store'
 
 export interface EscrowCardProps {
   event: EscrowEventInfo
