@@ -11,7 +11,6 @@ export type Storage = {
 
 export const kvStore = createStore('account-db', 'account-store')
 
-
 export const storage: Storage = {
     async getItem<V>(name: string): Promise<V | null> {
       const raw = await get(name, kvStore)

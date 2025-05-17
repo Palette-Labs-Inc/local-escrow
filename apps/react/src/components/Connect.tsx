@@ -1,7 +1,38 @@
 import { Hooks } from 'porto/wagmi'
 import { useConnectors } from 'wagmi'
 import { Button as AriakitButton } from '@ariakit/react'
-import { permissions } from '../constants.js'
+import { Hex, Value } from "ox";
+import { baseSepolia } from "viem/chains";
+import { EscrowFactory, exp1Address } from '@local-escrow/contracts';
+
+export const permissions = () =>
+	({
+		chainId: baseSepolia.id,
+		expiry: Math.floor(Date.now() / 1_000) + 60 * 60 * 24 * 30, // 30 days
+		permissions: {
+			calls: [
+				{
+					signature: "createEscrow(address,address,address)",
+					to: EscrowFactory.address as `0x${string}`,
+				},
+				{
+					signature: "approve(address,uint256)",
+					to: exp1Address as `0x${string}`,
+				},
+				{
+					signature: "transfer(address,uint256)",
+					to: exp1Address as `0x${string}`,
+				},
+			],
+			spend: [
+				{
+					period: "day",
+					limit: Hex.fromNumber(Value.fromEther("0.01")),
+				},
+			],
+		},
+	}) as const;
+
 
 export function Connect() {
   const connectors = useConnectors()
