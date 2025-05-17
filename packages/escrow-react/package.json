@@ -12,14 +12,17 @@
   "dependencies": {
     "@local-escrow/core": "workspace:*",
     "@local-escrow/contracts": "workspace:*",
+    "@ariakit/tailwind": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@ariakit/react": "catalog:",
     "react": "catalog:",
     "wagmi": "catalog:",
     "viem": "catalog:",
     "ox": "catalog:",
-    "@ariakit/react": "catalog:",
     "zustand": "catalog:",
     "idb-keyval": "catalog:",
-    "porto": "catalog:"
+    "porto": "catalog:",
+    "tailwindcss": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",

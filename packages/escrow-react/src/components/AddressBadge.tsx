@@ -18,4 +18,4 @@ export function AddressBadge({ address, length = 6 }: AddressBadgeProps) {
       {truncated}
     </a>
   )
-} 
+}

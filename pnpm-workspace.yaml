@@ -1,7 +1,6 @@
 packages:
   - "packages/*"
   - "apps/*"
-  - "examples/*"
 
 # Centralized version specifiers for common dependencies used across the workspace.
 catalog:
@@ -49,6 +48,7 @@ catalog:
   vite-plugin-mkcert: ^1.17.8
   "@biomejs/biome": ^1.9.4
   "@ariakit/react": ^0.4.17
+  "@ariakit/tailwind": "^0.1.5"
 
 overrides:
   porto: 0.0.23

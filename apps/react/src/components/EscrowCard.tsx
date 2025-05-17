@@ -1,5 +1,5 @@
 import { useAccount } from 'wagmi'
-import { AddressBadge, StatusBadge, Payer, Payee, Arbiter } from '@local-escrow/react'
+import { AddressBadge, StatusBadge, Payer } from '@local-escrow/react'
 import * as EscrowInfo from '@local-escrow/react'
 import type { EscrowEventInfo } from '../store/escrow-store.js'
 
@@ -69,20 +69,6 @@ export function EscrowCard({ event }: EscrowCardProps) {
         <section className="mt-4">
           {userRole === 'payer' && (
             <Payer.Widgets
-              escrowAddress={escrowAddress}
-              onSuccess={onSuccess}
-              permissions={{ canDispute, canRemoveDispute, canSettle, canRefund, canResolveDispute }}
-            />
-          )}
-          {userRole === 'payee' && (
-            <Payee.Widgets
-              escrowAddress={escrowAddress}
-              onSuccess={onSuccess}
-              permissions={{ canDispute, canRemoveDispute, canSettle, canRefund, canResolveDispute }}
-            />
-          )}
-          {userRole === 'arbiter' && (
-            <Arbiter.Widgets
               escrowAddress={escrowAddress}
               onSuccess={onSuccess}
               permissions={{ canDispute, canRemoveDispute, canSettle, canRefund, canResolveDispute }}
