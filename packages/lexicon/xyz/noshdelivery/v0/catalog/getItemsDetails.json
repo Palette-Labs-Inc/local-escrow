@@ -1,0 +1,62 @@
+{
+  "lexicon": 1,
+  "id": "xyz.noshdelivery.v0.catalog.getItemsDetails",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get all info about a specific item including modifiers.",
+      "parameters": {
+        "type": "params",
+        "required": ["merchantLocation", "itemIds"],
+        "properties": {
+          "merchantLocation": {
+            "type": "string",
+            "format": "at-uri"
+          },
+          "itemIds": {
+            "type": "array",
+            "description": "The IDs of the items to get.",
+            "items": {
+              "type": "string",
+              "format": "tid"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["merchantLocation", "items"],
+          "properties": {
+            "merchantLocation": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "xyz.noshdelivery.v0.catalog.defs#itemView"
+              }
+            },
+            "modifierGroups": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "xyz.noshdelivery.v0.catalog.defs#modifierGroupView"
+              }
+            },
+            "modifiers": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "xyz.noshdelivery.v0.catalog.defs#modifierView"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

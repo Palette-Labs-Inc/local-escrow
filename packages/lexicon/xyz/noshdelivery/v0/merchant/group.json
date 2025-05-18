@@ -1,0 +1,32 @@
+{
+  "lexicon": 1,
+  "id": "xyz.noshdelivery.v0.merchant.group",
+  "description": "A merchant group that is the parent company of locations",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "externalId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "logo": {
+            "type": "ref",
+            "ref": "xyz.noshdelivery.v0.media.image"
+          }
+        }
+      }
+    }
+  }
+}

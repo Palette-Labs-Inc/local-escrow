@@ -1,0 +1,72 @@
+{
+  "lexicon": 1,
+  "id": "xyz.noshdelivery.v0.merchant.putLocation",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Create or update a merchant location.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "groupTid",
+            "name",
+            "address",
+            "coordinates",
+            "timezone",
+            "parentGroup"
+          ],
+          "properties": {
+            "groupTid": {
+              "type": "string",
+              "description": "The tid of the merchant group.",
+              "format": "tid"
+            },
+            "externalId": {
+              "type": "string",
+              "description": "The external id of the merchant location."
+            },
+            "name": {
+              "type": "string",
+              "description": "The name of the merchant location."
+            },
+            "address": {
+              "type": "ref",
+              "ref": "community.lexicon.location.address"
+            },
+            "coordinates": {
+              "type": "ref",
+              "ref": "community.lexicon.location.geo"
+            },
+            "timezone": {
+              "type": "string",
+              "description": "The timezone of the merchant location."
+            },
+            "parentGroup": {
+              "type": "string",
+              "description": "The uri of the merchant group.",
+              "format": "at-uri"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["locations"],
+          "properties": {
+            "locations": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "xyz.noshdelivery.v0.merchant.defs#locationView"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

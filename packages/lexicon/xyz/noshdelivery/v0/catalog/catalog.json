@@ -1,0 +1,45 @@
+{
+  "lexicon": 1,
+  "id": "xyz.noshdelivery.v0.catalog.catalog",
+  "description": "Merchant can have multiple catalogs with disjoint or overlaping schedules. Collections are nested with catalogs at the roots.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["merchantLocation", "name", "availabilityPeriods"],
+        "properties": {
+          "externalId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "merchantLocation": {
+            "type": "string",
+            "format": "at-uri"
+          },
+          "availabilityPeriods": {
+            "type": "array",
+            "items": {
+              "type": "ref",
+              "ref": "xyz.noshdelivery.v0.catalog.defs#availabilityPeriod"
+            }
+          },
+          "collections": {
+            "type": "array",
+            "description": "Pkeys of xyz.noshdelivery.v0.catalog.collection records that belong in this catalog. Ordered in the way they will be presented.",
+            "items": {
+              "type": "string",
+              "format": "tid"
+            }
+          }
+        }
+      }
+    }
+  }
+}
