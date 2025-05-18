@@ -16,7 +16,7 @@ import * as EscrowEvents from "#/lib/EscrowEvents";
 import { TransactionBadge, AddressBadge } from "@local-escrow/react";
 import type { Hex, Address } from "ox";
 import * as Router from "#/lib/Router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const buttonClassName =
 	"inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50";
@@ -49,6 +49,13 @@ export function CreateEscrow() {
 		},
 	});
 
+	// Reset isWaitingForEvent when an error occurs
+	useEffect(() => {
+		if (error) {
+			setIsWaitingForEvent(false);
+		}
+	}, [error]);
+
 	const isCreatingEscrow = isPending || isWaitingForEvent;
 
 	const { form, storefront, arbiter, areAddressesValid } = useCreateEscrowForm();
@@ -75,7 +82,7 @@ export function CreateEscrow() {
 					data: encodeFunctionData({
 						abi: EscrowFactory.abi,
 						functionName: "createEscrow",
-						args: [address as Address.Address, storefront as Address.Address, arbiter as Address.Address],
+						args: [address, storefront as Address.Address, arbiter as Address.Address],
 					}),
 					to: EscrowFactory.address,
 				},
