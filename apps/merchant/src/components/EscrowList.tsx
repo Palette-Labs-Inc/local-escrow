@@ -27,7 +27,7 @@ export function EscrowList() {
       }}
     >
       {events.map((event) => (
-        <EscrowCard key={event.escrowAddress} escrowAddress={event.escrowAddress} transactionHash={event.transactionHash} />
+        <EscrowCard key={event.escrowAddress} escrowAddress={event.escrowAddress} />
       ))}
     </section>
   );

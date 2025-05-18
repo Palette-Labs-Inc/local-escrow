@@ -48,7 +48,13 @@ export function Connect() {
             <div key={connector.uid}>
               <AriakitButton
                 onClick={() => {
-                  connect.mutate({ connector, grantPermissions: permissions() })
+                  connect.mutate({
+                    connector,
+                    grantPermissions: permissions(),
+                    createAccount: {
+                      label: 'Merchant Account',
+                    },
+                  })
                 }}
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50"
               >
