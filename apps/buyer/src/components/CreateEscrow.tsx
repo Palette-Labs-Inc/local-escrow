@@ -1,11 +1,18 @@
 import { encodeFunctionData } from 'viem'
-import { useAccount, useSendCalls, useCallsStatus, type BaseError } from 'wagmi'
+import {
+	useAccount,
+	useSendCalls,
+	useCallsStatus,
+	type BaseError,
+	useTransactionReceipt,
+} from 'wagmi'
 import { Button } from '@ariakit/react'
 import { EscrowFactory } from '@local-escrow/contracts'
-import * as EscrowEvents from '#/lib/EscrowEvents'
-import { AddressBadge } from '@local-escrow/react'
-import type { Hex } from 'ox'
+import * as EscrowEvents from '#/components/EscrowEvents'
+import { TransactionBadge } from '@local-escrow/react'
+import { Json, type Hex } from 'ox'
 import { router } from '#/lib/Router'
+import { baseSepolia } from 'viem/chains'
 
 const buttonClassName =
 	'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50'
@@ -24,22 +31,16 @@ export function CreateEscrow() {
 
 	EscrowEvents.useWatchEscrowEvents({
 		onEvent: (eventInfo) => {
-			if (eventInfo.transactionHash && eventInfo.transactionHash === data?.id) {
-				router.navigate({
-					to: '/escrow/$escrowAddress',
-					params: { escrowAddress: eventInfo.escrowAddress },
-				})
-			}
+			console.log('eventInfo in onEvent', Json.stringify(eventInfo, null, 2))
+			console.log('data in onEvent', Json.stringify(data, null, 2))
+			router.navigate({
+				to: '/escrow/$escrowAddress',
+				params: { escrowAddress: eventInfo.escrowAddress },
+			})
 		},
 	})
 
 	if (!address) return null
-
-	const calldata = encodeFunctionData({
-		abi: EscrowFactory.abi,
-		functionName: 'createEscrow',
-		args: [address, address, address],
-	})
 
 	return (
 		<section className="rounded-lg border border-gray-200 p-4">
@@ -49,7 +50,14 @@ export function CreateEscrow() {
 				onSubmit={(e) => {
 					e.preventDefault()
 					sendCalls({
-						calls: [{ data: calldata, to: EscrowFactory.address }],
+						calls: [{ 
+							data: encodeFunctionData({
+								abi: EscrowFactory.abi,
+								functionName: 'createEscrow',
+								args: [address, address, address],
+							}), 
+							to: EscrowFactory.address 
+						}],
 					})
 				}}
 				className="space-y-4"
@@ -65,7 +73,7 @@ export function CreateEscrow() {
 				{data?.id && (
 					<div className="text-sm">
 						<span className="text-gray-600">Transaction Hash: </span>
-						<AddressBadge address={data.id as Hex.Hex} />
+						<TransactionBadge transactionHash={data.id as Hex.Hex} />
 					</div>
 				)}
 

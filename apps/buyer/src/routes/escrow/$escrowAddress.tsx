@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Layout, useEscrowData } from '@local-escrow/react'
 import { EscrowCard } from '#/components/EscrowCard'
 import { useEscrowStore } from '#/store/escrow-store'
-import type { EscrowEventInfo } from '#/store/escrow-store'
 import type { Address } from 'ox'
 
 export const Route = createFileRoute('/escrow/$escrowAddress')({
@@ -11,7 +10,6 @@ export const Route = createFileRoute('/escrow/$escrowAddress')({
 
 function EscrowPage() {
   const { escrowAddress } = Route.useParams() as { escrowAddress: Address.Address }
-  // const { address: currentUser } = useAccount()
   const { info, isLoading, isError } = useEscrowData({ escrowAddress })
   const { eventsByAccount } = useEscrowStore()
 

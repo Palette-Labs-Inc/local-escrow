@@ -1,6 +1,8 @@
 import { useAccount, useWatchContractEvent, type UseCallsStatusReturnType } from "wagmi";
 import { EscrowFactory } from "@local-escrow/contracts";
 import { type EscrowEventInfo, useEscrowStore } from "#/store/escrow-store";
+import { Json, type Hex } from "ox";
+import { decodeEventLog, type Log } from "viem";
 
 export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameters) {
   const { onEvent } = parameters || {};
@@ -8,14 +10,29 @@ export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameter
   const { addEvent } = useEscrowStore();
 
   useWatchContractEvent({
-    address: EscrowFactory.address as `0x${string}`,
+    address: EscrowFactory.address,
     abi: EscrowFactory.abi,
-    eventName: 'EscrowCreated',
+    eventName: "EscrowCreated",
     args: currentUser ? { payee: currentUser } : undefined,
-    onLogs(logs) {
+    pollingInterval: 1_000,
+    onLogs(logs: Log[]) {
       if (!currentUser) return
+
       for (const log of logs) {
-        const eventInfo = log.args as EscrowEventInfo
+        const { args: logArgs } = decodeEventLog({
+          abi: EscrowFactory.abi,
+          topics: log.topics,
+          data: log.data,
+        })
+
+        const eventInfo = {
+          ...logArgs,
+          blockNumber: log.blockNumber ?? undefined,
+          transactionHash: log.transactionHash as Hex.Hex | undefined,
+        }
+        
+        console.log('eventInfo in useWatchEscrowEvents', Json.stringify(eventInfo, null, 2))
+
         addEvent(currentUser, eventInfo)
         onEvent?.(eventInfo)
       }
@@ -32,4 +49,4 @@ export declare namespace useWatchEscrowEvents {
     onEvent?: (eventInfo: EscrowEventInfo) => void;
     statusData?: UseCallsStatusReturnType["data"];
   };
-}
+} 
