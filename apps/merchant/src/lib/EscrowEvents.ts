@@ -13,7 +13,7 @@ export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameter
     address: EscrowFactory.address,
     abi: EscrowFactory.abi,
     eventName: "EscrowCreated",
-    args: { payee: currentUser },
+    args: { storefront: currentUser },
     pollingInterval: 1_000,
     onLogs(logs: Log[]) {
       if (!currentUser) return

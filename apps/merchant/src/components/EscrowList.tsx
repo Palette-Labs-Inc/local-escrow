@@ -15,7 +15,7 @@ export function EscrowList() {
   const events = eventsByAccount[address] || [];
 
   if (events.length === 0) {
-    return <h3>No escrows found for this account</h3>;
+    return <h3>No orders found for this account</h3>;
   }
 
   return (
