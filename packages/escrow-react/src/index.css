@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+/* Let Tailwind scan this package when a consumer imports the CSS (optional for your own app but helpful for external users) */
+@source "./**/*.{ts,tsx}"; 

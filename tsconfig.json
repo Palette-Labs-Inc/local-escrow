@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@local-escrow/core": ["packages/escrow-core/src"],
+      "@local-escrow/react": ["packages/escrow-react/src"]
+    },
+    "types": ["node", "react", "react-dom"]   // or remove the line completely
+
+  },
+  "exclude": ["node_modules", "dist"]
+}

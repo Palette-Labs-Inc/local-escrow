@@ -16,3 +16,4 @@ apps/vite-react/.env.local
 
 #!.yarn/cache
 .pnp.*
+apps/react/src/ARCH.md
