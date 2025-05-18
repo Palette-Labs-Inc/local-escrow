@@ -1,9 +1,9 @@
 {
-  "name": "buyer",
+  "name": "merchant",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port 6902 --open",
+    "dev": "vite --port 6901 --open",
     "build": "vite build",
     "deploy": "vite build && wrangler --config='wrangler.toml' deploy",
     "typecheck": "tsc --noEmit --project tsconfig.json"

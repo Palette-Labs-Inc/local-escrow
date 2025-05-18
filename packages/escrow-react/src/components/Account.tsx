@@ -2,6 +2,7 @@ import { Hooks } from 'porto/wagmi'
 import { useAccount } from 'wagmi'
 import { truncateHexString } from '../utils.js'
 import { Button as AriakitButton } from '@ariakit/react'
+import { AddressBadge } from '../index.js'
 
 export function Account() {
   const account = useAccount()
@@ -15,7 +16,7 @@ export function Account() {
         <div>
           <span className="text-gray-600">Account: </span>
           <span className="font-mono">
-            {truncateHexString({ address: account.address, length: 10 })}
+            {account.address && <AddressBadge address={account.address} />}
           </span>
         </div>
         <div>

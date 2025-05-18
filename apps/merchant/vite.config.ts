@@ -7,7 +7,7 @@ import { resolve } from 'node:path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  server: { port: 6901 },
+  server: { port: 6902 },
   plugins: [
     TanStackRouterVite({ 
       target: 'react', 

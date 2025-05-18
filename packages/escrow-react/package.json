@@ -27,7 +27,8 @@
     "react-dom": "catalog:",
     "wagmi": "catalog:",
     "viem": "catalog:",
-    "@ariakit/react": "catalog:"
+    "@ariakit/react": "catalog:",
+    "lucide-react": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",
