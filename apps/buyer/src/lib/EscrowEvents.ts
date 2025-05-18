@@ -13,7 +13,7 @@ export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameter
     address: EscrowFactory.address,
     abi: EscrowFactory.abi,
     eventName: "EscrowCreated",
-    args: { payee: currentUser },
+    // args: { payee: currentUser }, // TODO: we need the payer to be emitted in the contract event.
     pollingInterval: 1_000,
     onLogs(logs: Log[]) {
       if (!currentUser) return
@@ -33,7 +33,11 @@ export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameter
 
         console.log('[EscrowEvents] eventInfo', Json.stringify(eventInfo, null, 2))
 
-        addEvent(currentUser, eventInfo)
+        try{
+          addEvent(currentUser, eventInfo)
+        } catch (error) {
+          console.error('[EscrowEvents] error', Json.stringify(error, null, 2))
+        }
         onEvent?.(eventInfo)
       }
     },

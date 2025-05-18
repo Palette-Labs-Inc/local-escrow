@@ -14,16 +14,13 @@ import {
 import { EscrowFactory } from "@local-escrow/contracts";
 import * as EscrowEvents from "#/lib/EscrowEvents";
 import { TransactionBadge, AddressBadge } from "@local-escrow/react";
-import type { Hex, Address } from "ox";
+import { type Hex, Address } from "ox";
 import * as Router from "#/lib/Router";
 import { useState, useEffect } from "react";
 
 const buttonClassName =
 	"inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50";
 
-function isValidAddress(value: string | undefined): boolean {
-	return !!value && /^0x[a-fA-F0-9]{40}$/.test(value);
-}
 
 function useCreateEscrowForm() {
 	const form = useFormStore({
@@ -33,7 +30,7 @@ function useCreateEscrowForm() {
 	const storefront = (form.useValue as unknown as (name: string) => string)("storefront");
 	const arbiter = (form.useValue as unknown as (name: string) => string)("arbiter");
 
-	const areAddressesValid = [storefront, arbiter].every(isValidAddress);
+	const areAddressesValid = [storefront, arbiter].every((address) => Address.validate(address));
 	return { form, storefront, arbiter, areAddressesValid } as const;
 }
 
@@ -82,7 +79,7 @@ export function CreateEscrow() {
 					data: encodeFunctionData({
 						abi: EscrowFactory.abi,
 						functionName: "createEscrow",
-						args: [address, storefront as Address.Address, arbiter as Address.Address],
+						args: [storefront as Address.Address, address as Address.Address, arbiter as Address.Address],
 					}),
 					to: EscrowFactory.address,
 				},

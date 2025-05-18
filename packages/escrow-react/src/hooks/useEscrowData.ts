@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useReadContracts } from 'wagmi'
-import { Address } from 'ox'
+import { Address, Json } from 'ox'
 import { SimpleEscrow } from '@local-escrow/contracts'
 import type { EscrowInfo } from '@local-escrow/core'
 
@@ -52,6 +52,8 @@ export function useEscrowData({ escrowAddress }: UseEscrowDataParameters): Escro
       } as EscrowInfo),
     },
   })
+
+  console.log('result', Json.stringify(result.data, null, 2))
 
   return {
     info: result.data,
