@@ -13,7 +13,7 @@ export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameter
     address: EscrowFactory.address,
     abi: EscrowFactory.abi,
     eventName: "EscrowCreated",
-    args: currentUser ? { payee: currentUser } : undefined,
+    args: { payee: currentUser },
     pollingInterval: 1_000,
     onLogs(logs: Log[]) {
       if (!currentUser) return
@@ -31,7 +31,7 @@ export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameter
           transactionHash: log.transactionHash as Hex.Hex | undefined,
         }
 
-        console.log('Json.stringify(eventInfo, null, 2)', Json.stringify(eventInfo, null, 2))
+        console.log('[EscrowEvents] eventInfo', Json.stringify(eventInfo, null, 2))
 
         addEvent(currentUser, eventInfo)
         onEvent?.(eventInfo)
