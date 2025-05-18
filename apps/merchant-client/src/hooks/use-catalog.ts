@@ -7,9 +7,10 @@ import {
   XyzNoshdeliveryV0CatalogModifierGroup,
   XyzNoshdeliveryV0CatalogModifier,
 } from 'lexicon'
-import { useState, useEffect } from 'react'
 import { AtUri } from '@atproto/api'
 import type { Catalog, Catalogs, Collection, Item, Modifier, ModifierGroup } from '../types'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { TID } from '../lib/tid'
 
 const REPO = 'did:plc:ufa7rl6agtfdqje6bant3wsb'
 const pdsClient = new AtpAgent({
@@ -132,19 +133,32 @@ async function fetchCatalog(): Promise<Catalogs> {
   }
 }
 
+type CatalogObjectPair =
+  | { type: 'xyz.noshdelivery.v0.catalog.catalog'; object: Partial<Catalog> }
+  | { type: 'xyz.noshdelivery.v0.catalog.collection'; object: Partial<Collection> }
+  | { type: 'xyz.noshdelivery.v0.catalog.item'; object: Partial<Item> }
+  | { type: 'xyz.noshdelivery.v0.catalog.modifierGroup'; object: Partial<ModifierGroup> }
+  | { type: 'xyz.noshdelivery.v0.catalog.modifier'; object: Partial<Modifier> }
+
 export function useCatalog() {
-  const [catalogs, setCatalogs] = useState<Catalogs>({
-    catalogs: {},
-    collections: {},
-    items: {},
-    modifierGroups: {},
-    modifiers: {},
+  const { data: catalogs, refetch: refetchCatalog } = useQuery({
+    queryKey: ['catalogs'],
+    queryFn: fetchCatalog,
   })
 
-  useEffect(() => {
-    fetchCatalog().then((catalogs) => {
-      setCatalogs(catalogs)
-    })
-  }, [])
-  return { catalogs }
+  const { mutate: putRecord } = useMutation({
+    mutationFn: async ({ type, object }: CatalogObjectPair) => {
+      const { id, ...rest } = object
+      const result = await pdsClient.com.atproto.repo.putRecord({
+        repo: REPO,
+        collection: type,
+        rkey: id || TID.nextStr(),
+        record: rest,
+      })
+      refetchCatalog()
+      return result
+    },
+  })
+
+  return { catalogs, putRecord }
 }
