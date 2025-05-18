@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { StateStorage } from 'zustand/middleware'
 import * as Storage from '../lib/Storage.js'
-import type { Address, Hex } from 'ox'
+import type { Address, Hex, Json } from 'ox'
 
 export type EscrowEventInfo = {
   escrowAddress: Address.Address
@@ -59,7 +59,20 @@ export const useEscrowStore = create<EscrowStore>()(
     }),
     {
       name: 'escrow-events',
-      storage: createJSONStorage(() => zustandStorage),
+      storage: createJSONStorage(() => zustandStorage, {
+        replacer: (_, value) => {
+          if (typeof value === 'bigint') {
+            return `${value.toString()}n`;
+          }
+          return value;
+        },
+        reviver: (_, value) => {
+          if (typeof value === 'string' && value.endsWith('n')) {
+            return BigInt(value.slice(0, -1));
+          }
+          return value;
+        },
+      }),
       version: 1,
     },
   ),

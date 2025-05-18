@@ -8,14 +8,13 @@ import {
   useEscrowPermissions,
 } from '@local-escrow/react'
 import { getUserRole, type UserRole } from '@local-escrow/core'
-import type { Address, Hex } from 'ox'
+import type { Address } from 'ox'
 
 export interface EscrowCardProps {
   escrowAddress: Address.Address
-  transactionHash?: Hex.Hex
 }
 
-export function EscrowCard({ escrowAddress, transactionHash }: EscrowCardProps) {
+export function EscrowCard({ escrowAddress }: EscrowCardProps) {
   const { address: currentUser } = useAccount()
 
   const data = useEscrowData({ escrowAddress })
@@ -72,13 +71,6 @@ export function EscrowCard({ escrowAddress, transactionHash }: EscrowCardProps) 
             />
           )}
         </section>
-      )}
-
-      {transactionHash && (
-        <div>
-        <strong>Transaction </strong>
-        <AddressBadge address={transactionHash} length={10} />
-      </div>
       )}
     </article>
   )

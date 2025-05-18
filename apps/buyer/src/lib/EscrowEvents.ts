@@ -1,4 +1,4 @@
-import { useAccount, useWatchContractEvent, type UseCallsStatusReturnType } from "wagmi";
+import { useAccount, useWatchContractEvent } from "wagmi";
 import { EscrowFactory } from "@local-escrow/contracts";
 import { type EscrowEventInfo, useEscrowStore } from "#/store/escrow-store";
 import { Json, type Hex } from "ox";
@@ -24,14 +24,14 @@ export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameter
           topics: log.topics,
           data: log.data,
         })
-
+        
         const eventInfo = {
           ...logArgs,
           blockNumber: log.blockNumber ?? undefined,
           transactionHash: log.transactionHash as Hex.Hex | undefined,
         }
-        
-        console.log('eventInfo in useWatchEscrowEvents', Json.stringify(eventInfo, null, 2))
+
+        console.log('Json.stringify(eventInfo, null, 2)', Json.stringify(eventInfo, null, 2))
 
         addEvent(currentUser, eventInfo)
         onEvent?.(eventInfo)
@@ -47,6 +47,5 @@ export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameter
 export declare namespace useWatchEscrowEvents {
   export type Parameters = {
     onEvent?: (eventInfo: EscrowEventInfo) => void;
-    statusData?: UseCallsStatusReturnType["data"];
   };
 } 
