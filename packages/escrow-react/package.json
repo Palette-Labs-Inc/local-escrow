@@ -22,15 +22,12 @@
     "@local-escrow/contracts": "workspace:*",
     "idb-keyval": "catalog:",
     "ox": "catalog:",
-    "porto": "catalog:"
-  },
-  "peerDependencies": {
+    "porto": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "wagmi": "catalog:",
     "viem": "catalog:",
-    "@ariakit/react": "catalog:",
-    "zustand": "catalog:"
+    "@ariakit/react": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",

@@ -1,38 +1,39 @@
 import { useAccount } from 'wagmi'
-import { AddressBadge, StatusBadge, Payer } from '@local-escrow/react'
-import * as EscrowInfo from '@local-escrow/react'
-import type { EscrowEventInfo } from '#/store/escrow-store'
+import {
+  AddressBadge,
+  StatusBadge,
+  Payer,
+  useEscrowData,
+  useEscrowState,
+  useEscrowPermissions,
+} from '@local-escrow/react'
+import { getUserRole, type UserRole } from '@local-escrow/core'
+import type { Address, Hex } from 'ox'
 
 export interface EscrowCardProps {
-  event: EscrowEventInfo
+  escrowAddress: Address.Address
+  transactionHash?: Hex.Hex
 }
 
-export function EscrowCard({ event }: EscrowCardProps) {
+export function EscrowCard({ escrowAddress, transactionHash }: EscrowCardProps) {
   const { address: currentUser } = useAccount()
-  const { escrowAddress, transactionHash, payee, arbiter, storefront } = event
 
-  const {
-    info,
-    status,
-    userRole,
-    isLoading,
-    isError,
-    refetch,
-    canDispute,
-    canRemoveDispute,
-    canSettle,
-    canRefund,
-    canResolveDispute
-  } = EscrowInfo.useEscrow({
-    escrowAddress,
-    currentUser,
-    payee,
-    arbiter,
-  })
+  const data = useEscrowData({ escrowAddress })
+  const status = useEscrowState(data.info)
 
-  const onSuccess = refetch
+  const role: UserRole = data.info
+    ? getUserRole({
+        currentUser,
+        payer: data.info.payer,
+        payee: data.info.payee,
+        arbiter: data.info.arbiter,
+      })
+    : 'other'
 
-  if (isError) return <small>Failed to fetch escrow state</small>
+  const permissions = useEscrowPermissions(status, role, data.info)
+  const onSuccess = data.refetch
+
+  if (data.isError) return <small>Failed to fetch escrow state</small>
 
   return (
     <article className="rounded-lg border border-gray-200 p-4">
@@ -44,34 +45,30 @@ export function EscrowCard({ event }: EscrowCardProps) {
         {status && <StatusBadge status={status} />}
       </header>
 
-      {isLoading && <small>Fetching escrow state…</small>}
+      {data.isLoading && <small>Fetching escrow state…</small>}
 
-      {info && (
+      {data.info && (
         <ul className="space-y-1 list-none p-0 text-sm">
           <li>
-            Payee: <AddressBadge address={payee} />
+            Payee: <AddressBadge address={data.info.payee} />
           </li>
           <li>
-            Payer: <AddressBadge address={info.payer} />
+            Payer: <AddressBadge address={data.info.payer} />
           </li>
           <li>
-            Arbiter: <AddressBadge address={arbiter} />
+            Arbiter: <AddressBadge address={data.info.arbiter} />
           </li>
-          <li>
-            Storefront: <AddressBadge address={storefront} />
-          </li>
-          <li>Deadline: {Number(info.settleTime)}</li>
-          <li>Role: {userRole}</li>
+          <li>Deadline: {Number(data.info.settleTime)}</li>
         </ul>
       )}
 
       {currentUser && (
         <section className="mt-4">
-          {userRole === 'payer' && (
+          {role === 'payer' && (
             <Payer.Widgets
               escrowAddress={escrowAddress}
               onSuccess={onSuccess}
-              permissions={{ canDispute, canRemoveDispute, canSettle, canRefund, canResolveDispute }}
+              permissions={permissions}
             />
           )}
         </section>

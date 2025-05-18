@@ -1,5 +1,5 @@
 import { useAccount } from "wagmi";
-import * as EscrowEvents from "#/components/EscrowEvents";
+import * as EscrowEvents from "#/lib/EscrowEvents";
 import { EscrowCard } from "#/components/EscrowCard";
 import { useEscrowStore } from "#/store/escrow-store";
 
@@ -27,7 +27,7 @@ export function EscrowList() {
       }}
     >
       {events.map((event) => (
-        <EscrowCard key={event.escrowAddress} event={event} />
+        <EscrowCard key={event.escrowAddress} escrowAddress={event.escrowAddress} transactionHash={event.transactionHash} />
       ))}
     </section>
   );

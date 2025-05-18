@@ -16,6 +16,7 @@ import { Route as ProfileImport } from './routes/profile'
 import { Route as OrdersImport } from './routes/orders'
 import { Route as LoginImport } from './routes/login'
 import { Route as IndexImport } from './routes/index'
+import { Route as EscrowEscrowAddressImport } from './routes/escrow/$escrowAddress'
 
 // Create/Update Routes
 
@@ -46,6 +47,12 @@ const LoginRoute = LoginImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const EscrowEscrowAddressRoute = EscrowEscrowAddressImport.update({
+  id: '/escrow/$escrowAddress',
+  path: '/escrow/$escrowAddress',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -88,6 +95,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopImport
       parentRoute: typeof rootRoute
     }
+    '/escrow/$escrowAddress': {
+      id: '/escrow/$escrowAddress'
+      path: '/escrow/$escrowAddress'
+      fullPath: '/escrow/$escrowAddress'
+      preLoaderRoute: typeof EscrowEscrowAddressImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -99,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
   '/shop': typeof ShopRoute
+  '/escrow/$escrowAddress': typeof EscrowEscrowAddressRoute
 }
 
 export interface FileRoutesByTo {
@@ -107,6 +122,7 @@ export interface FileRoutesByTo {
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
   '/shop': typeof ShopRoute
+  '/escrow/$escrowAddress': typeof EscrowEscrowAddressRoute
 }
 
 export interface FileRoutesById {
@@ -116,14 +132,34 @@ export interface FileRoutesById {
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
   '/shop': typeof ShopRoute
+  '/escrow/$escrowAddress': typeof EscrowEscrowAddressRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/orders' | '/profile' | '/shop'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/orders'
+    | '/profile'
+    | '/shop'
+    | '/escrow/$escrowAddress'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/orders' | '/profile' | '/shop'
-  id: '__root__' | '/' | '/login' | '/orders' | '/profile' | '/shop'
+  to:
+    | '/'
+    | '/login'
+    | '/orders'
+    | '/profile'
+    | '/shop'
+    | '/escrow/$escrowAddress'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/orders'
+    | '/profile'
+    | '/shop'
+    | '/escrow/$escrowAddress'
   fileRoutesById: FileRoutesById
 }
 
@@ -133,6 +169,7 @@ export interface RootRouteChildren {
   OrdersRoute: typeof OrdersRoute
   ProfileRoute: typeof ProfileRoute
   ShopRoute: typeof ShopRoute
+  EscrowEscrowAddressRoute: typeof EscrowEscrowAddressRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -141,6 +178,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrdersRoute: OrdersRoute,
   ProfileRoute: ProfileRoute,
   ShopRoute: ShopRoute,
+  EscrowEscrowAddressRoute: EscrowEscrowAddressRoute,
 }
 
 export const routeTree = rootRoute
@@ -157,7 +195,8 @@ export const routeTree = rootRoute
         "/login",
         "/orders",
         "/profile",
-        "/shop"
+        "/shop",
+        "/escrow/$escrowAddress"
       ]
     },
     "/": {
@@ -174,6 +213,9 @@ export const routeTree = rootRoute
     },
     "/shop": {
       "filePath": "shop.tsx"
+    },
+    "/escrow/$escrowAddress": {
+      "filePath": "escrow/$escrowAddress.tsx"
     }
   }
 }

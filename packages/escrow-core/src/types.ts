@@ -17,4 +17,13 @@ export interface EscrowInfo {
   settled: boolean
   disputed: boolean
   settleTime: bigint
+}
+
+export interface EscrowEvent {
+  /** Address of the freshly created escrow */
+  escrowAddress: Address.Address
+  /** Optional transaction hash of the creation tx */
+  transactionHash?: `0x${string}`
+  /** Optional block number where the event was emitted */
+  blockNumber?: bigint
 } 

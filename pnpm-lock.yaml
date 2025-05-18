@@ -108,7 +108,7 @@ importers:
         specifier: ^4.19.4
         version: 4.19.4
 
-  apps/react:
+  apps/buyer:
     dependencies:
       '@ariakit/react':
         specifier: 'catalog:'
@@ -222,6 +222,9 @@ importers:
 
   packages/escrow-react:
     dependencies:
+      '@ariakit/react':
+        specifier: 'catalog:'
+        version: 0.4.17(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@local-escrow/contracts':
         specifier: workspace:*
         version: link:../contracts
@@ -237,6 +240,18 @@ importers:
       porto:
         specifier: 0.0.23
         version: 0.0.23(@tanstack/react-query@5.76.1(react@19.1.0))(@types/react@19.1.4)(@wagmi/core@2.17.2(@tanstack/query-core@5.76.0)(@types/react@19.1.4)(react@19.1.0)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.1.0))(viem@2.29.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.4)))(react@19.1.0)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.1.0))(viem@2.29.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.4))(wagmi@2.15.3(@tanstack/query-core@5.76.0)(@tanstack/react-query@5.76.1(react@19.1.0))(@types/react@19.1.4)(bufferutil@4.0.9)(react@19.1.0)(typescript@5.8.3)(utf-8-validate@5.0.10)(viem@2.29.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.4))(zod@3.24.4))(zod@3.24.4)
+      react:
+        specifier: 'catalog:'
+        version: 19.1.0
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.1.0(react@19.1.0)
+      viem:
+        specifier: 'catalog:'
+        version: 2.29.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.4)
+      wagmi:
+        specifier: 'catalog:'
+        version: 2.15.3(@tanstack/query-core@5.76.0)(@tanstack/react-query@5.76.1(react@19.1.0))(@types/react@19.1.4)(bufferutil@4.0.9)(react@19.1.0)(typescript@5.8.3)(utf-8-validate@5.0.10)(viem@2.29.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.4))(zod@3.24.4)
     devDependencies:
       '@ariakit/tailwind':
         specifier: 'catalog:'

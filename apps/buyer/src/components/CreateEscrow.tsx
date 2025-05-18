@@ -2,7 +2,10 @@ import { encodeFunctionData } from 'viem'
 import { useAccount, useSendCalls, useCallsStatus, type BaseError } from 'wagmi'
 import { Button } from '@ariakit/react'
 import { EscrowFactory } from '@local-escrow/contracts'
-import * as EscrowEvents from '#/components/EscrowEvents'
+import * as EscrowEvents from '#/lib/EscrowEvents'
+import { AddressBadge } from '@local-escrow/react'
+import type { Hex } from 'ox'
+import { router } from '#/lib/Router'
 
 const buttonClassName =
 	'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-gray-50 disabled:opacity-50'
@@ -12,7 +15,6 @@ export function CreateEscrow() {
 	const { data, error, isPending, sendCalls } = useSendCalls()
 
 	const {
-		data: statusData,
 		isLoading: isConfirming,
 		isSuccess: isConfirmed,
 	} = useCallsStatus({
@@ -20,7 +22,16 @@ export function CreateEscrow() {
 		query: { enabled: !!data },
 	})
 
-	EscrowEvents.useWatchEscrowEvents({ statusData })
+	EscrowEvents.useWatchEscrowEvents({
+		onEvent: (eventInfo) => {
+			if (eventInfo.transactionHash && eventInfo.transactionHash === data?.id) {
+				router.navigate({
+					to: '/escrow/$escrowAddress',
+					params: { escrowAddress: eventInfo.escrowAddress },
+				})
+			}
+		},
+	})
 
 	if (!address) return null
 
@@ -54,7 +65,7 @@ export function CreateEscrow() {
 				{data?.id && (
 					<div className="text-sm">
 						<span className="text-gray-600">Transaction Hash: </span>
-						<span className="font-mono">{data.id}</span>
+						<AddressBadge address={data.id as Hex.Hex} />
 					</div>
 				)}
 
@@ -70,8 +81,6 @@ export function CreateEscrow() {
 					</div>
 				)}
 			</form>
-
-			{/* Transaction hashes list removed as per request */}
 		</section>
 	)
 }
