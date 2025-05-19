@@ -5,6 +5,8 @@ import { porto } from 'porto/wagmi'
 import { Mode } from 'porto'
 import * as Storage from './lib/Storage.js'
 
+export const PDS_HOST = import.meta.env.VITE_PDS_HOST || 'http://localhost:3001'
+
 export const wagmiConfig = createConfig({
   chains: [baseSepolia],
   connectors: [
@@ -62,8 +64,7 @@ export function getProvider(): Promise<PortoProvider> {
     getProvider: () => Promise<PortoProvider>
   }
 
-  if (connector?.id !== 'xyz.ithaca.porto')
-    throw new Error('⛔ Porto connector not initialised')
+  if (connector?.id !== 'xyz.ithaca.porto') throw new Error('⛔ Porto connector not initialised')
 
   // eslint-disable-next-line @typescript-eslint/return-await
   return connector.getProvider()

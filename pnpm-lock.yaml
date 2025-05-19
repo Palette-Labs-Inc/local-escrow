@@ -213,6 +213,12 @@ importers:
       '@ariakit/react':
         specifier: 'catalog:'
         version: 0.4.17(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@atproto/api':
+        specifier: ^0.14.22
+        version: 0.14.22
+      '@atproto/uri':
+        specifier: ^0.1.1
+        version: 0.1.1
       '@local-escrow/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -240,6 +246,9 @@ importers:
       idb-keyval:
         specifier: 'catalog:'
         version: 6.2.2
+      lexicon:
+        specifier: workspace:*
+        version: link:../../packages/lexicon
       lucide-react:
         specifier: 'catalog:'
         version: 0.511.0(react@19.1.0)
