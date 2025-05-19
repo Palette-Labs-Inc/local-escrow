@@ -653,55 +653,6 @@ export const schemaDict = {
       },
     },
   },
-  XyzNoshdeliveryV0CatalogModifier: {
-    lexicon: 1,
-    id: 'xyz.noshdelivery.v0.catalog.modifier',
-    defs: {
-      main: {
-        type: 'record',
-        key: 'tid',
-        record: {
-          type: 'object',
-          required: ['name', 'priceMoney'],
-          properties: {
-            externalId: {
-              type: 'string',
-              description:
-                'An external ID that can be used to identify this object in an external system such as a warehousing system',
-              maxLength: 64,
-            },
-            suspended: {
-              type: 'boolean',
-              description: 'The modifier is currently suspended from ordering',
-              default: false,
-            },
-            name: {
-              type: 'string',
-              minLength: 1,
-              maxLength: 128,
-            },
-            description: {
-              type: 'string',
-              maxLength: 256,
-            },
-            priceMoney: {
-              type: 'ref',
-              ref: 'lex:xyz.noshdelivery.v0.catalog.defs#priceMoney',
-            },
-            childModifierGroups: {
-              type: 'array',
-              description:
-                'Pkeys of xyz.noshdelivery.v0.catalog.modifierGroup records that are children of this modifier. Ordered in the way they will be presented.',
-              items: {
-                type: 'string',
-                format: 'tid',
-              },
-            },
-          },
-        },
-      },
-    },
-  },
   XyzNoshdeliveryV0CatalogModifierGroup: {
     lexicon: 1,
     id: 'xyz.noshdelivery.v0.catalog.modifierGroup',
@@ -756,6 +707,55 @@ export const schemaDict = {
               type: 'array',
               description:
                 'Pkeys of xyz.noshdelivery.v0.catalog.modifierGroup records that belong in this item. Ordered in the way they will be presented.',
+              items: {
+                type: 'string',
+                format: 'tid',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  XyzNoshdeliveryV0CatalogModifier: {
+    lexicon: 1,
+    id: 'xyz.noshdelivery.v0.catalog.modifier',
+    defs: {
+      main: {
+        type: 'record',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['name', 'priceMoney'],
+          properties: {
+            externalId: {
+              type: 'string',
+              description:
+                'An external ID that can be used to identify this object in an external system such as a warehousing system',
+              maxLength: 64,
+            },
+            suspended: {
+              type: 'boolean',
+              description: 'The modifier is currently suspended from ordering',
+              default: false,
+            },
+            name: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            description: {
+              type: 'string',
+              maxLength: 256,
+            },
+            priceMoney: {
+              type: 'ref',
+              ref: 'lex:xyz.noshdelivery.v0.catalog.defs#priceMoney',
+            },
+            childModifierGroups: {
+              type: 'array',
+              description:
+                'Pkeys of xyz.noshdelivery.v0.catalog.modifierGroup records that are children of this modifier. Ordered in the way they will be presented.',
               items: {
                 type: 'string',
                 format: 'tid',
@@ -2518,9 +2518,9 @@ export const ids = {
   XyzNoshdeliveryV0CatalogGetShallowCatalogView:
     'xyz.noshdelivery.v0.catalog.getShallowCatalogView',
   XyzNoshdeliveryV0CatalogItem: 'xyz.noshdelivery.v0.catalog.item',
-  XyzNoshdeliveryV0CatalogModifier: 'xyz.noshdelivery.v0.catalog.modifier',
   XyzNoshdeliveryV0CatalogModifierGroup:
     'xyz.noshdelivery.v0.catalog.modifierGroup',
+  XyzNoshdeliveryV0CatalogModifier: 'xyz.noshdelivery.v0.catalog.modifier',
   XyzNoshdeliveryV0CatalogPutCatalogObject:
     'xyz.noshdelivery.v0.catalog.putCatalogObject',
   XyzNoshdeliveryV0MediaDefs: 'xyz.noshdelivery.v0.media.defs',

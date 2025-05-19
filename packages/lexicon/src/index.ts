@@ -16,8 +16,8 @@ import * as XyzNoshdeliveryV0CatalogGetItemsDetails from './types/xyz/noshdelive
 import * as XyzNoshdeliveryV0CatalogGetObjects from './types/xyz/noshdelivery/v0/catalog/getObjects.js'
 import * as XyzNoshdeliveryV0CatalogGetShallowCatalogView from './types/xyz/noshdelivery/v0/catalog/getShallowCatalogView.js'
 import * as XyzNoshdeliveryV0CatalogItem from './types/xyz/noshdelivery/v0/catalog/item.js'
-import * as XyzNoshdeliveryV0CatalogModifier from './types/xyz/noshdelivery/v0/catalog/modifier.js'
 import * as XyzNoshdeliveryV0CatalogModifierGroup from './types/xyz/noshdelivery/v0/catalog/modifierGroup.js'
+import * as XyzNoshdeliveryV0CatalogModifier from './types/xyz/noshdelivery/v0/catalog/modifier.js'
 import * as XyzNoshdeliveryV0CatalogPutCatalogObject from './types/xyz/noshdelivery/v0/catalog/putCatalogObject.js'
 import * as XyzNoshdeliveryV0MediaDefs from './types/xyz/noshdelivery/v0/media/defs.js'
 import * as XyzNoshdeliveryV0MediaImage from './types/xyz/noshdelivery/v0/media/image.js'
@@ -53,8 +53,8 @@ export * as XyzNoshdeliveryV0CatalogGetItemsDetails from './types/xyz/noshdelive
 export * as XyzNoshdeliveryV0CatalogGetObjects from './types/xyz/noshdelivery/v0/catalog/getObjects.js'
 export * as XyzNoshdeliveryV0CatalogGetShallowCatalogView from './types/xyz/noshdelivery/v0/catalog/getShallowCatalogView.js'
 export * as XyzNoshdeliveryV0CatalogItem from './types/xyz/noshdelivery/v0/catalog/item.js'
-export * as XyzNoshdeliveryV0CatalogModifier from './types/xyz/noshdelivery/v0/catalog/modifier.js'
 export * as XyzNoshdeliveryV0CatalogModifierGroup from './types/xyz/noshdelivery/v0/catalog/modifierGroup.js'
+export * as XyzNoshdeliveryV0CatalogModifier from './types/xyz/noshdelivery/v0/catalog/modifier.js'
 export * as XyzNoshdeliveryV0CatalogPutCatalogObject from './types/xyz/noshdelivery/v0/catalog/putCatalogObject.js'
 export * as XyzNoshdeliveryV0MediaDefs from './types/xyz/noshdelivery/v0/media/defs.js'
 export * as XyzNoshdeliveryV0MediaImage from './types/xyz/noshdelivery/v0/media/image.js'
@@ -140,16 +140,16 @@ export class XyzNoshdeliveryV0CatalogNS {
   catalog: CatalogRecord
   collection: CollectionRecord
   item: ItemRecord
-  modifier: ModifierRecord
   modifierGroup: ModifierGroupRecord
+  modifier: ModifierRecord
 
   constructor(client: XrpcClient) {
     this._client = client
     this.catalog = new CatalogRecord(client)
     this.collection = new CollectionRecord(client)
     this.item = new ItemRecord(client)
-    this.modifier = new ModifierRecord(client)
     this.modifierGroup = new ModifierGroupRecord(client)
+    this.modifier = new ModifierRecord(client)
   }
 
   getItemsDetails(
@@ -396,71 +396,6 @@ export class ItemRecord {
   }
 }
 
-export class ModifierRecord {
-  _client: XrpcClient
-
-  constructor(client: XrpcClient) {
-    this._client = client
-  }
-
-  async list(
-    params: OmitKey<ComAtprotoRepoListRecords.QueryParams, 'collection'>,
-  ): Promise<{
-    cursor?: string
-    records: { uri: string; value: XyzNoshdeliveryV0CatalogModifier.Record }[]
-  }> {
-    const res = await this._client.call('com.atproto.repo.listRecords', {
-      collection: 'xyz.noshdelivery.v0.catalog.modifier',
-      ...params,
-    })
-    return res.data
-  }
-
-  async get(
-    params: OmitKey<ComAtprotoRepoGetRecord.QueryParams, 'collection'>,
-  ): Promise<{
-    uri: string
-    cid: string
-    value: XyzNoshdeliveryV0CatalogModifier.Record
-  }> {
-    const res = await this._client.call('com.atproto.repo.getRecord', {
-      collection: 'xyz.noshdelivery.v0.catalog.modifier',
-      ...params,
-    })
-    return res.data
-  }
-
-  async create(
-    params: OmitKey<
-      ComAtprotoRepoCreateRecord.InputSchema,
-      'collection' | 'record'
-    >,
-    record: Un$Typed<XyzNoshdeliveryV0CatalogModifier.Record>,
-    headers?: Record<string, string>,
-  ): Promise<{ uri: string; cid: string }> {
-    const collection = 'xyz.noshdelivery.v0.catalog.modifier'
-    const res = await this._client.call(
-      'com.atproto.repo.createRecord',
-      undefined,
-      { collection, ...params, record: { ...record, $type: collection } },
-      { encoding: 'application/json', headers },
-    )
-    return res.data
-  }
-
-  async delete(
-    params: OmitKey<ComAtprotoRepoDeleteRecord.InputSchema, 'collection'>,
-    headers?: Record<string, string>,
-  ): Promise<void> {
-    await this._client.call(
-      'com.atproto.repo.deleteRecord',
-      undefined,
-      { collection: 'xyz.noshdelivery.v0.catalog.modifier', ...params },
-      { headers },
-    )
-  }
-}
-
 export class ModifierGroupRecord {
   _client: XrpcClient
 
@@ -524,6 +459,71 @@ export class ModifierGroupRecord {
       'com.atproto.repo.deleteRecord',
       undefined,
       { collection: 'xyz.noshdelivery.v0.catalog.modifierGroup', ...params },
+      { headers },
+    )
+  }
+}
+
+export class ModifierRecord {
+  _client: XrpcClient
+
+  constructor(client: XrpcClient) {
+    this._client = client
+  }
+
+  async list(
+    params: OmitKey<ComAtprotoRepoListRecords.QueryParams, 'collection'>,
+  ): Promise<{
+    cursor?: string
+    records: { uri: string; value: XyzNoshdeliveryV0CatalogModifier.Record }[]
+  }> {
+    const res = await this._client.call('com.atproto.repo.listRecords', {
+      collection: 'xyz.noshdelivery.v0.catalog.modifier',
+      ...params,
+    })
+    return res.data
+  }
+
+  async get(
+    params: OmitKey<ComAtprotoRepoGetRecord.QueryParams, 'collection'>,
+  ): Promise<{
+    uri: string
+    cid: string
+    value: XyzNoshdeliveryV0CatalogModifier.Record
+  }> {
+    const res = await this._client.call('com.atproto.repo.getRecord', {
+      collection: 'xyz.noshdelivery.v0.catalog.modifier',
+      ...params,
+    })
+    return res.data
+  }
+
+  async create(
+    params: OmitKey<
+      ComAtprotoRepoCreateRecord.InputSchema,
+      'collection' | 'record'
+    >,
+    record: Un$Typed<XyzNoshdeliveryV0CatalogModifier.Record>,
+    headers?: Record<string, string>,
+  ): Promise<{ uri: string; cid: string }> {
+    const collection = 'xyz.noshdelivery.v0.catalog.modifier'
+    const res = await this._client.call(
+      'com.atproto.repo.createRecord',
+      undefined,
+      { collection, ...params, record: { ...record, $type: collection } },
+      { encoding: 'application/json', headers },
+    )
+    return res.data
+  }
+
+  async delete(
+    params: OmitKey<ComAtprotoRepoDeleteRecord.InputSchema, 'collection'>,
+    headers?: Record<string, string>,
+  ): Promise<void> {
+    await this._client.call(
+      'com.atproto.repo.deleteRecord',
+      undefined,
+      { collection: 'xyz.noshdelivery.v0.catalog.modifier', ...params },
       { headers },
     )
   }
