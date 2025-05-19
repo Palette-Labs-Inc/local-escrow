@@ -156,7 +156,7 @@ export function useCatalog() {
         record: rest,
       })
       refetchCatalog()
-      return result
+      return result.data.uri
     },
   })
 

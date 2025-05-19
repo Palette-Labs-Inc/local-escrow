@@ -310,6 +310,9 @@ importers:
       '@atproto/api':
         specifier: ^0.14.22
         version: 0.14.22
+      '@atproto/uri':
+        specifier: ^0.1.1
+        version: 0.1.1
       '@hookform/resolvers':
         specifier: ^5.0.1
         version: 5.0.1(react-hook-form@7.56.4(react@19.1.0))

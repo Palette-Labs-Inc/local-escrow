@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@atproto/api": "^0.14.22",
+    "@atproto/uri": "^0.1.1",
     "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-dialog": "^1.1.13",
     "@radix-ui/react-label": "^2.1.6",

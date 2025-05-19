@@ -1,16 +1,10 @@
 import { useEffect, useState } from 'react'
+import { AtUri } from '@atproto/uri'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCatalog } from '../hooks/use-catalog'
 import type { Catalogs } from '../types'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 
 function NewCollectionDialog({ trigger, onConfirm }: { trigger: React.ReactNode; onConfirm: (name: string) => void }) {
@@ -47,33 +41,144 @@ function NewCollectionDialog({ trigger, onConfirm }: { trigger: React.ReactNode;
   )
 }
 
+function CreateOrEditItemDialog({
+  trigger,
+  onConfirm,
+  item,
+}: {
+  trigger: React.ReactNode
+  onConfirm: (name: string, price: number) => void
+  item?: { name: string; price: number }
+}) {
+  console.log('item', item)
+  const [name, setName] = useState(item?.name || '')
+  const [price, setPrice] = useState(item?.price || 0)
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New Collection</DialogTitle>
+        </DialogHeader>
+        <div className="flex justify-end gap-2 mt-4">
+          <Input type="text" placeholder="Item Name" value={name} onChange={(e) => setName(e.target.value)} />
+          <Input
+            type="number"
+            placeholder="Price"
+            value={String(price)}
+            onChange={(e) => setPrice(e.target.value ? parseInt(e.target.value) : 0)}
+          />
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="default"
+            disabled={!name}
+            onClick={() => {
+              if (name) {
+                onConfirm(name, price)
+                setOpen(false)
+              }
+            }}
+          >
+            {item ? 'Update' : 'Create'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function Collection({ catalog, id }: { catalog: Catalogs; id: string }) {
+  const { putRecord } = useCatalog()
+
   const collection = catalog.collections[id]
   const itemMap = catalog.items
+
+  const handleNewItem = (name: string, price: number) => {
+    putRecord(
+      {
+        type: 'xyz.noshdelivery.v0.catalog.item',
+        object: {
+          name,
+          priceMoney: { amount: price, currency: 'USD' },
+        },
+      },
+      {
+        onSuccess: (uri) => {
+          // Now update the collection to include the new item
+          const itemUri = new AtUri(uri)
+          const itemId = itemUri.rkey
+          console.log('itemId', itemId)
+          putRecord({
+            type: 'xyz.noshdelivery.v0.catalog.collection',
+            object: {
+              ...collection,
+              items: [...collection.items, itemId],
+            },
+          })
+        },
+      },
+    )
+  }
+
+  const handleRemoveItem = (itemId: string) => {
+    putRecord({
+      type: 'xyz.noshdelivery.v0.catalog.collection',
+      object: {
+        ...collection,
+        items: collection.items.filter((id) => id !== itemId),
+      },
+    })
+  }
+
+  const handleEditItem = (itemId: string, name: string, price: number) => {
+    putRecord({
+      type: 'xyz.noshdelivery.v0.catalog.item',
+      object: {
+        ...itemMap[itemId],
+        name,
+        priceMoney: { amount: price, currency: 'USD' },
+      },
+    })
+  }
 
   return (
     <div>
       <div className="flex flex-row items-center mb-4">
         <h2 className="mb-1 mr-4">{collection.name}</h2>
-        <Button variant="secondary">+</Button>
+        <CreateOrEditItemDialog trigger={<Button variant="secondary">+</Button>} onConfirm={handleNewItem} />
       </div>
       <div>
-        {collection.items.map((itemId) => (
-          <div key={itemId}>
-            <Card className="mb-4 w-200">
-              <CardContent>
-                <div className="flex flex-row items-center">
-                  <h3 className="grow">{itemMap[itemId].name}</h3>
-                  <div className="mr-12 font-bold">${itemMap[itemId].priceMoney.amount}</div>
-                  <div className="flex flex-row gap-2">
-                    <Button variant="secondary">Edit</Button>
-                    <Button variant="secondary">Remove</Button>
+        {collection.items.map((itemId) => {
+          if (!itemMap[itemId]) {
+            return null
+          }
+          return (
+            <div key={itemId}>
+              <Card className="mb-4 w-200">
+                <CardContent>
+                  <div className="flex flex-row items-center">
+                    <h3 className="grow">{itemMap[itemId].name}</h3>
+                    <div className="mr-12 font-bold">${itemMap[itemId].priceMoney.amount}</div>
+                    <div className="flex flex-row gap-2">
+                      <CreateOrEditItemDialog
+                        trigger={<Button variant="secondary">Edit</Button>}
+                        onConfirm={(name, price) => handleEditItem(itemId, name, price)}
+                        item={{ name: itemMap[itemId].name, price: itemMap[itemId].priceMoney.amount }}
+                      />
+                      <Button variant="secondary" onClick={() => handleRemoveItem(itemId)}>
+                        Remove
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ))}
+                </CardContent>
+              </Card>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
