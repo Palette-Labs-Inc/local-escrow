@@ -1,7 +1,7 @@
 import { useCatalog } from '#/hooks/use-catalog'
 import { AtUri } from '@atproto/api'
 import { useState } from 'react'
-import { Drawer } from 'vaul'
+import Collection from './Collection'
 
 function extractRkey(uri: string) {
   const atUri = new AtUri(uri)
@@ -9,41 +9,6 @@ function extractRkey(uri: string) {
 }
 
 const LINK_CLASSES = 'inline-block cursor-pointer ml-2 font-semibold text-blue-600'
-
-function Item({ itemId }: { itemId: string }) {
-  const { catalogs } = useCatalog()
-  const item = catalogs?.items[itemId]
-  return (
-    <div className="mb-2 flex flex-row items-center">
-      <div className="mr-2 grow">{item?.name}</div>
-      <div className="text-gray-300 mr-4">${item?.priceMoney.amount}</div>
-      <div>
-        <button className={LINK_CLASSES}>edit</button>
-        <button className={LINK_CLASSES}>x</button>
-      </div>
-    </div>
-  )
-}
-
-function Collection({ collectionId }: { collectionId: string }) {
-  const { catalogs } = useCatalog()
-  const collection = catalogs?.collections[collectionId]
-  console.log(collectionId, collection)
-  return (
-    <div>
-      <div className="mt-8 mb-4 font-bold">
-        {collection?.name} <span className={LINK_CLASSES}>+</span>
-      </div>
-      <div>
-        {collection?.items?.length ? (
-          collection?.items?.map((itemId) => <Item key={itemId} itemId={itemId} />)
-        ) : (
-          <div>[No items]</div>
-        )}
-      </div>
-    </div>
-  )
-}
 
 function Catalog({ catalogId }: { catalogId: string }) {
   const { catalogs, putRecord } = useCatalog()
