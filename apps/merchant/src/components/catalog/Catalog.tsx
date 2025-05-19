@@ -1,4 +1,14 @@
 import { useCatalog } from '#/hooks/use-catalog'
+import { AtUri } from '@atproto/api'
+import { useState } from 'react'
+import { Drawer } from 'vaul'
+
+function extractRkey(uri: string) {
+  const atUri = new AtUri(uri)
+  return atUri.rkey
+}
+
+const LINK_CLASSES = 'inline-block cursor-pointer ml-2 font-semibold text-blue-600'
 
 function Item({ itemId }: { itemId: string }) {
   const { catalogs } = useCatalog()
@@ -8,8 +18,8 @@ function Item({ itemId }: { itemId: string }) {
       <div className="mr-2 grow">{item?.name}</div>
       <div className="text-gray-300 mr-4">${item?.priceMoney.amount}</div>
       <div>
-        <button className="inline-block cursor-pointer ml-2 font-semibold text-blue-600">edit</button>
-        <button className="inline-block cursor-pointer ml-2 font-semibold text-blue-600">x</button>
+        <button className={LINK_CLASSES}>edit</button>
+        <button className={LINK_CLASSES}>x</button>
       </div>
     </div>
   )
@@ -18,23 +28,56 @@ function Item({ itemId }: { itemId: string }) {
 function Collection({ collectionId }: { collectionId: string }) {
   const { catalogs } = useCatalog()
   const collection = catalogs?.collections[collectionId]
+  console.log(collectionId, collection)
   return (
     <div>
       <div className="mt-8 mb-4 font-bold">
-        {collection?.name} <span className="inline-block cursor-pointer ml-2 font-semibold text-blue-600">+</span>
+        {collection?.name} <span className={LINK_CLASSES}>+</span>
       </div>
       <div>
-        {collection?.items?.map((itemId) => (
-          <Item key={itemId} itemId={itemId} />
-        ))}
+        {collection?.items?.length ? (
+          collection?.items?.map((itemId) => <Item key={itemId} itemId={itemId} />)
+        ) : (
+          <div>[No items]</div>
+        )}
       </div>
     </div>
   )
 }
 
 function Catalog({ catalogId }: { catalogId: string }) {
-  const { catalogs } = useCatalog()
+  const { catalogs, putRecord } = useCatalog()
   const catalog = catalogs?.catalogs[catalogId]
+  const [creatingCollection, setCreatingCollection] = useState(false)
+  const [name, setName] = useState('')
+
+  const handleNewCollection = (name: string) => {
+    putRecord(
+      {
+        type: 'xyz.noshdelivery.v0.catalog.collection',
+        object: {
+          name,
+          items: [],
+          childCollections: [],
+        },
+      },
+      {
+        onSuccess: (collectionUri) => {
+          const collectionId = extractRkey(collectionUri)
+          putRecord({
+            type: 'xyz.noshdelivery.v0.catalog.catalog',
+            object: {
+              ...catalog,
+              collections: [...(catalog?.collections || []), collectionId],
+            },
+          })
+          setCreatingCollection(false)
+          setName('')
+        },
+      },
+    )
+  }
+
   return (
     <div>
       <div className="mb-4 font-bold">Schedule:</div>
@@ -48,6 +91,36 @@ function Catalog({ catalogId }: { catalogId: string }) {
             </div>
           </div>
         ))}
+      </div>
+      <hr />
+      <div className="mb-4 mt-4 flex flex-row items-center">
+        {creatingCollection ? (
+          <>
+            <input
+              type="text"
+              autoFocus
+              placeholder="Collection Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleNewCollection(name)
+                }
+              }}
+              className="grow mr-4"
+            />
+            <button onClick={() => setCreatingCollection(false)} className={`mr-4 ${LINK_CLASSES}`}>
+              Cancel
+            </button>
+            <button onClick={() => handleNewCollection(name)} className={`${LINK_CLASSES}`}>
+              Create
+            </button>
+          </>
+        ) : (
+          <button className={LINK_CLASSES} onClick={() => setCreatingCollection(true)}>
+            + Add Collection
+          </button>
+        )}
       </div>
       <hr />
       <div>

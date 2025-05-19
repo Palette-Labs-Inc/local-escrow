@@ -14,7 +14,9 @@ function RootLayout() {
       {/* Primary navigation */}
       <header className="border-b border-gray-200 mb-4">
         <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-4">
-          <Link to="/" className="font-bold text-lg">Buyer</Link>
+          <Link to="/" className="font-bold text-lg">
+            Buyer
+          </Link>
 
           {isConnected && (
             <Menubar aria-label="Main" className="flex gap-4">
@@ -64,4 +66,4 @@ function RootLayout() {
       <TanStackRouterDevtools position="bottom-right" />
     </>
   )
-} 
+}

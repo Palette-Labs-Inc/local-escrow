@@ -7,11 +7,11 @@ import * as Router from './lib/Router.js'
 
 export function App() {
   return (
-	<WagmiProvider config={wagmiConfig}>
-	<QueryClientProvider client={queryClient}>
-	  <RouterProvider router={Router.router} />
-	  <ReactQueryDevtools initialIsOpen={false} />
-	</QueryClientProvider>
-  </WagmiProvider>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={Router.router} />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </WagmiProvider>
   )
 }
