@@ -3,7 +3,7 @@ import {
   XyzNoshdeliveryV0CatalogItem,
   XyzNoshdeliveryV0CatalogCollection,
   XyzNoshdeliveryV0CatalogCatalog,
-} from '@nosh/lexicon'
+} from 'lexicon'
 const agent = new AtpAgent({
   service: 'http://localhost:3001',
 })
@@ -85,7 +85,7 @@ async function populateCatalog() {
     catalogKey,
     {
       merchantLocation: 'at://' + REPO + '/xyz.noshdelivery.v0.merchant.location/3lnw7k6v34w25',
-      name: 'Menu',
+      name: 'Full Menu',
       collections: [collectionKeys[0], collectionKeys[1]],
       availabilityPeriods: [
         {

@@ -1,0 +1,18 @@
+{
+  "name": "lexicon",
+  "packageManager": "yarn@4.3.1",
+  "main": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lexgen": "lex gen-api ./src ../../lexicon/xyz/noshdelivery/v0/*/* ../../lexicon/com/atproto/*/* ../../lexicon/community/lexicon/location/* --yes"
+  },
+  "devDependencies": {
+    "@atproto/lex-cli": "^0.7.1",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@atproto/lexicon": "^0.4.11",
+    "@atproto/xrpc": "^0.6.12",
+    "multiformats": "^9.9.0"
+  }
+}

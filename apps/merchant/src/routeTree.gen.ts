@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as ProfileImport } from './routes/profile'
 import { Route as OrdersImport } from './routes/orders'
 import { Route as LoginImport } from './routes/login'
+import { Route as CatalogImport } from './routes/catalog'
 import { Route as IndexImport } from './routes/index'
 import { Route as EscrowEscrowAddressImport } from './routes/escrow/$escrowAddress'
 
@@ -34,6 +35,12 @@ const OrdersRoute = OrdersImport.update({
 const LoginRoute = LoginImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CatalogRoute = CatalogImport.update({
+  id: '/catalog',
+  path: '/catalog',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -58,6 +65,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/catalog': {
+      id: '/catalog'
+      path: '/catalog'
+      fullPath: '/catalog'
+      preLoaderRoute: typeof CatalogImport
       parentRoute: typeof rootRoute
     }
     '/login': {
@@ -95,6 +109,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/catalog': typeof CatalogRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
@@ -103,6 +118,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/catalog': typeof CatalogRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
@@ -112,6 +128,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/catalog': typeof CatalogRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
@@ -120,12 +137,25 @@ export interface FileRoutesById {
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/orders' | '/profile' | '/escrow/$escrowAddress'
+  fullPaths:
+    | '/'
+    | '/catalog'
+    | '/login'
+    | '/orders'
+    | '/profile'
+    | '/escrow/$escrowAddress'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/orders' | '/profile' | '/escrow/$escrowAddress'
+  to:
+    | '/'
+    | '/catalog'
+    | '/login'
+    | '/orders'
+    | '/profile'
+    | '/escrow/$escrowAddress'
   id:
     | '__root__'
     | '/'
+    | '/catalog'
     | '/login'
     | '/orders'
     | '/profile'
@@ -135,6 +165,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CatalogRoute: typeof CatalogRoute
   LoginRoute: typeof LoginRoute
   OrdersRoute: typeof OrdersRoute
   ProfileRoute: typeof ProfileRoute
@@ -143,6 +174,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CatalogRoute: CatalogRoute,
   LoginRoute: LoginRoute,
   OrdersRoute: OrdersRoute,
   ProfileRoute: ProfileRoute,
@@ -160,6 +192,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/catalog",
         "/login",
         "/orders",
         "/profile",
@@ -168,6 +201,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/catalog": {
+      "filePath": "catalog.tsx"
     },
     "/login": {
       "filePath": "login.tsx"

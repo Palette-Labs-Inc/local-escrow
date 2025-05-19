@@ -9,12 +9,15 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const { isConnected } = useAccount()
+
   return (
     <>
       {/* Primary navigation */}
       <header className="border-b border-gray-200 mb-4">
         <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-4">
-          <Link to="/" className="font-bold text-lg">Merchant</Link>
+          <Link to="/" className="font-bold text-lg">
+            Merchant
+          </Link>
 
           {isConnected && (
             <Menubar aria-label="Main" className="flex gap-4">
@@ -42,6 +45,18 @@ function RootLayout() {
               >
                 Orders
               </MenuItem>
+              <MenuItem
+                className="px-2 py-1 rounded focus:outline-none"
+                render={
+                  <Link
+                    to="/catalog"
+                    className="outline-none"
+                    activeProps={{ className: 'font-semibold text-blue-600' }}
+                  />
+                }
+              >
+                Catalog
+              </MenuItem>
             </Menubar>
           )}
         </div>
@@ -52,4 +67,4 @@ function RootLayout() {
       <TanStackRouterDevtools position="bottom-right" />
     </>
   )
-} 
+}
