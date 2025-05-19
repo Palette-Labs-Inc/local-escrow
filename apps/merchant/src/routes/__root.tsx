@@ -8,8 +8,7 @@ export const Route = createRootRoute({
 })
 
 function RootLayout() {
-  let { isConnected } = useAccount()
-  isConnected = true
+  const { isConnected } = useAccount()
 
   return (
     <>

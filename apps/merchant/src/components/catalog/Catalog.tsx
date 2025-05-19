@@ -74,11 +74,11 @@ function Catalog({ catalogId }: { catalogId: string }) {
               }}
               className="grow mr-4"
             />
-            <button onClick={() => setCreatingCollection(false)} className={`mr-4 ${LINK_CLASSES}`}>
-              Cancel
-            </button>
             <button onClick={() => handleNewCollection(name)} className={`${LINK_CLASSES}`}>
               Create
+            </button>
+            <button onClick={() => setCreatingCollection(false)} className={`mr-4 ${LINK_CLASSES}`}>
+              Cancel
             </button>
           </>
         ) : (
