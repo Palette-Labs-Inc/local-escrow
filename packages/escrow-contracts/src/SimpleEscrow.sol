@@ -10,6 +10,8 @@ error PaymentDisputed();
 error NotAuthorized();
 error CannotSettleYet();
 error CannotDisputeSettledEscrow();
+error PaymentAlreadySettled();
+error PaymentAlreadyRefunded();
 error NotDisputed();
 error NotPayer();
 error NotArbiter();
@@ -22,8 +24,11 @@ contract SimpleEscrow {
     address public arbiter;
     bool public isDisputed;
     bool public isSettled;
+    bool public isRefunded;
     uint256 public settleTime;
     bool private initialized;
+    address public paymentToken;
+    uint256 public paymentAmount;
     address public proposedArbiter;
 
     event Settled(address indexed to, address token, uint256 amount);
@@ -55,8 +60,7 @@ contract SimpleEscrow {
         _;
     }   
 
-    // function initialize(address _payee, address _payer, address _arbiter, uint256 settleDeadline, address _paymentToken, uint256 _paymentAmount) external {
-    function initialize(address _payee, address _payer, address _arbiter, uint256 settleDeadline) external {
+    function initialize(address _payee, address _payer, address _arbiter, uint256 settleDeadline, address _paymentToken, uint256 _paymentAmount) external {
         if (initialized) {
             revert AlreadyInitialized();
         }
@@ -64,19 +68,22 @@ contract SimpleEscrow {
         arbiter = _arbiter;
         payer = _payer;
         settleTime = block.timestamp + settleDeadline;
-        // paymentToken = _paymentToken;
-        // paymentAmount = _paymentAmount;
+        paymentToken = _paymentToken;
+        paymentAmount = _paymentAmount;
         initialized = true;
 
         // The tokens must be approved for transfer by the payer
-        // IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), paymentAmount);
+        IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), paymentAmount);
     }
 
     receive() external payable {}
 
-    function settle(address token, uint256 amount) external {
+    function settle() external {
         if (isDisputed) {
             revert PaymentDisputed();
+        }
+        if (isSettled) {
+            revert PaymentAlreadySettled();
         }
         if (msg.sender != payer && msg.sender != payee) {
             revert NotAuthorized();
@@ -90,13 +97,17 @@ contract SimpleEscrow {
             }
         }
 
-        _transferPayment(payee, token, amount);
-        emit Settled(payee, token, amount);
+        _transferPayment(payee, paymentToken, paymentAmount);
+        emit Settled(payee, paymentToken, paymentAmount);
     }
 
-    function refund(address token, uint256 amount) external onlyPayee {
-        _transferPayment(payer, token, amount);
-        emit Refunded(payer, token, amount);
+    function refund() external onlyPayee {
+        if (isRefunded) {
+            revert PaymentAlreadyRefunded();
+        }
+        _transferPayment(payer, paymentToken, paymentAmount);
+        isRefunded = true;
+        emit Refunded(payer, paymentToken, paymentAmount);
     }
 
     function dispute() external onlyPayer {
@@ -115,25 +126,21 @@ contract SimpleEscrow {
         emit DisputeRemoved(payer);
     }    
         
-    function resolveDispute(bool shouldSettle, address token, uint256 amount) external onlyArbiter {
+    function resolveDispute(bool shouldSettle) external onlyArbiter {
         if (!isDisputed) {
             revert NotDisputed();
         }
         if (shouldSettle) {
-            _transferPayment(payee, token, amount);
-            emit Settled(payee, token, amount);
+            _transferPayment(payee, paymentToken, paymentAmount);
+            emit Settled(payee, paymentToken, paymentAmount);
         } else {
-            _transferPayment(payer, token, amount);
-            emit Refunded(payer, token, amount);
+            _transferPayment(payer, paymentToken, paymentAmount);
+            emit Refunded(payer, paymentToken, paymentAmount);
         }
         emit DisputeResolved(msg.sender, shouldSettle);
     }
 
     function _transferPayment(address to, address token, uint256 amount) private {
-        if (token == address(0)) {
-            payable(to).transfer(amount);
-        } else {
-            IERC20(token).safeTransfer(to, amount);
-        }
+        IERC20(token).safeTransfer(to, amount);
     }
 }
