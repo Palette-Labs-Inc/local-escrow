@@ -1,12 +1,12 @@
 const fs = require('node:fs')
 
 // Simple assumption for now
-// const baseSepoliaId = 84532
-const baseSepoliaId = 31337
+const baseSepoliaChainId = 84532
+const chainId = process.argv[2] || baseSepoliaChainId
 
 function main() {
   const broadcast = JSON.parse(
-    String(fs.readFileSync(`../broadcast/EscrowFactory.s.sol/${baseSepoliaId}/run-latest.json`)),
+    String(fs.readFileSync(`../broadcast/EscrowFactory.s.sol/${chainId}/run-latest.json`)),
   )
 
   const tx = broadcast.transactions[0]
