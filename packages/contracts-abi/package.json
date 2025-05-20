@@ -1,5 +1,5 @@
 {
-  "name": "@local-escrow/contracts",
+  "name": "@local-escrow/contracts-abi",
   "version": "0.1.0",
   "description": "TypeScript contract ABIs & addresses for Local Escrow.",
   "type": "module",

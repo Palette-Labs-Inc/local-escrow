@@ -1,5 +1,5 @@
 import type { Address } from 'ox'
-import { SimpleEscrow } from '@local-escrow/contracts'
+import { SimpleEscrow } from '@local-escrow/contracts-abi'
 import { useEscrowAction } from '@local-escrow/react'
 import { encodeFunctionData } from 'viem'
 
@@ -11,9 +11,11 @@ export interface UseActionParameters {
 export function useAction({ escrowAddress, onSuccess }: UseActionParameters) {
   return useEscrowAction({
     onSuccess,
-    buildCalls: () => [{
-      to: escrowAddress,
-      data: encodeFunctionData({ abi: SimpleEscrow.abi, functionName: 'dispute' }),
-    }],
+    buildCalls: () => [
+      {
+        to: escrowAddress,
+        data: encodeFunctionData({ abi: SimpleEscrow.abi, functionName: 'dispute' }),
+      },
+    ],
   })
-} 
+}

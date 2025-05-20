@@ -6,8 +6,7 @@ import { useAccount } from 'wagmi'
 import type { Address } from 'ox'
 
 import { useExpBalance } from './Balance.js'
-import { exp1Abi, exp1Address } from '@local-escrow/contracts'
-import { SimpleEscrow } from '@local-escrow/contracts'
+import { exp1Abi, exp1Address, SimpleEscrow } from '@local-escrow/contracts-abi'
 import { useEscrowAction } from '@local-escrow/react'
 
 // ---------------------------------------------------------------------------
@@ -44,10 +43,14 @@ export interface UseActionParameters {
   onSuccess: () => void
 }
 
-
 export type UseActionReturn = ReturnType<typeof useEscrowAction>
 
-export function useAction({ escrowAddress, amountWei, isAmountInvalid, onSuccess }: UseActionParameters): UseActionReturn {
+export function useAction({
+  escrowAddress,
+  amountWei,
+  isAmountInvalid,
+  onSuccess,
+}: UseActionParameters): UseActionReturn {
   return useEscrowAction({
     onSuccess,
     buildCalls: () => {
@@ -68,4 +71,4 @@ export function useAction({ escrowAddress, amountWei, isAmountInvalid, onSuccess
       ]
     },
   })
-} 
+}

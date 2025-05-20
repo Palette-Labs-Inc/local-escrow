@@ -46,8 +46,5 @@ catalog:
   "@ariakit/react": ^0.4.17
   "@ariakit/tailwind": "^0.1.5"
 
-ignoredBuiltDependencies:
-  - better-sqlite3
-
 overrides:
   porto: 0.0.23

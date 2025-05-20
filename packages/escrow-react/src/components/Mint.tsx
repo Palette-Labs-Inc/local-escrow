@@ -1,5 +1,5 @@
 import { parseEther } from 'viem'
-import { exp1Address, exp1Config } from '@local-escrow/contracts'
+import { exp1Address, exp1Config } from '../../../contracts-abi/src'
 import { useAccount, useSendCalls, useWaitForCallsStatus, type BaseError } from 'wagmi'
 import { Button as AriakitButton } from '@ariakit/react'
 
@@ -7,8 +7,7 @@ export function Mint() {
   const { address } = useAccount()
   const { data, error, isPending, sendCalls } = useSendCalls()
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForCallsStatus({ id: data?.id })
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForCallsStatus({ id: data?.id })
 
   if (!address) return null
 
@@ -46,20 +45,14 @@ export function Mint() {
           </div>
         )}
 
-        {isConfirming && (
-          <div className="text-sm text-blue-600">Waiting for confirmation...</div>
-        )}
+        {isConfirming && <div className="text-sm text-blue-600">Waiting for confirmation...</div>}
 
-        {isConfirmed && (
-          <div className="text-sm text-green-600">Transaction confirmed.</div>
-        )}
+        {isConfirmed && <div className="text-sm text-green-600">Transaction confirmed.</div>}
 
         {error && (
-          <div className="text-sm text-red-600">
-            Error: {(error as BaseError).shortMessage || error.message}
-          </div>
+          <div className="text-sm text-red-600">Error: {(error as BaseError).shortMessage || error.message}</div>
         )}
       </form>
     </section>
   )
-} 
+}

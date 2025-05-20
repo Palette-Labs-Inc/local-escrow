@@ -6,8 +6,6 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 
 // Custom Errors
-error NotStorefront();
-error PayerAlreadySet();
 error PaymentDisputed();
 error NotAuthorized();
 error CannotSettleYet();
@@ -57,7 +55,8 @@ contract SimpleEscrow {
         _;
     }   
 
-    function initialize(address _payee, address _arbiter, address _payer, uint256 settleDeadline) external {
+    // function initialize(address _payee, address _payer, address _arbiter, uint256 settleDeadline, address _paymentToken, uint256 _paymentAmount) external {
+    function initialize(address _payee, address _payer, address _arbiter, uint256 settleDeadline) external {
         if (initialized) {
             revert AlreadyInitialized();
         }
@@ -65,7 +64,12 @@ contract SimpleEscrow {
         arbiter = _arbiter;
         payer = _payer;
         settleTime = block.timestamp + settleDeadline;
+        // paymentToken = _paymentToken;
+        // paymentAmount = _paymentAmount;
         initialized = true;
+
+        // The tokens must be approved for transfer by the payer
+        // IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), paymentAmount);
     }
 
     receive() external payable {}

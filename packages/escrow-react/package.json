@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@local-escrow/core": "workspace:*",
-    "@local-escrow/contracts": "workspace:*",
+    "@local-escrow/contracts-abi": "workspace:*",
     "idb-keyval": "catalog:",
     "ox": "catalog:",
     "porto": "catalog:",
