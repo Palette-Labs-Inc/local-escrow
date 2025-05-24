@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useReadContracts } from 'wagmi'
 import { Address, Json } from 'ox'
-import { SimpleEscrow } from '../../../contracts-abi/src'
+import { SimpleEscrow } from '@local-escrow/contracts-abi'
 import type { EscrowInfo } from '@local-escrow/core'
 
 export type UseEscrowDataParameters = {

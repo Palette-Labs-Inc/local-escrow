@@ -6,7 +6,7 @@ import {
   Button as AriakitButton,
   useFormStore,
 } from '@ariakit/react'
-import { EscrowFactory, escrowFactoryAddress, exp1Address } from '@local-escrow/contracts-abi'
+import { EscrowFactory, escrowFactoryAddress, exp1Address, exp1Config, SimpleEscrow } from '@local-escrow/contracts-abi'
 import * as EscrowEvents from '#/lib/EscrowEvents'
 import { TransactionBadge, AddressBadge } from '@local-escrow/react'
 import { type Hex, Address } from 'ox'
@@ -68,6 +68,7 @@ export function CreateEscrow() {
     if (!areAddressesValid) return
     const dayFromNow = Math.floor(Date.now() / 1000) + 60 * 60 * 24
     setIsWaitingForEvent(true)
+
     sendCalls({
       calls: [
         {
