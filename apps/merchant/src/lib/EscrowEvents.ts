@@ -1,19 +1,19 @@
-import { useAccount, useWatchContractEvent } from "wagmi";
-import { EscrowFactory } from "@local-escrow/contracts";
-import { type EscrowEventInfo, useEscrowStore } from "#/store/escrow-store";
-import { Json, type Hex } from "ox";
-import { decodeEventLog, type Log } from "viem";
+import { useAccount, useWatchContractEvent } from 'wagmi'
+import { EscrowFactory, escrowFactoryAddress } from '@local-escrow/contracts-abi'
+import { type EscrowEventInfo, useEscrowStore } from '#/store/escrow-store'
+import { Json, type Hex } from 'ox'
+import { decodeEventLog, type Log } from 'viem'
 
 export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameters) {
-  const { onEvent } = parameters || {};
-  const { address: currentUser } = useAccount();
-  const { addEvent } = useEscrowStore();
+  const { onEvent } = parameters || {}
+  const { address: currentUser } = useAccount()
+  const { addEvent } = useEscrowStore()
 
   useWatchContractEvent({
-    address: EscrowFactory.address,
+    address: escrowFactoryAddress as `0x${string}`,
     abi: EscrowFactory.abi,
-    eventName: "EscrowCreated",
-    args: { storefront: currentUser },
+    eventName: 'EscrowCreated',
+    args: { payer: currentUser },
     pollingInterval: 1_000,
     onLogs(logs: Log[]) {
       if (!currentUser) return
@@ -24,7 +24,7 @@ export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameter
           topics: log.topics,
           data: log.data,
         })
-        
+
         const eventInfo = {
           ...logArgs,
           blockNumber: log.blockNumber ?? undefined,
@@ -37,15 +37,15 @@ export function useWatchEscrowEvents(parameters?: useWatchEscrowEvents.Parameter
         onEvent?.(eventInfo)
       }
     },
-  });
-  
+  })
+
   return {
     isWatching: !!currentUser,
-  } as const;
+  } as const
 }
 
 export declare namespace useWatchEscrowEvents {
   export type Parameters = {
-    onEvent?: (eventInfo: EscrowEventInfo) => void;
-  };
-} 
+    onEvent?: (eventInfo: EscrowEventInfo) => void
+  }
+}

@@ -1,10 +1,10 @@
-import { exp1Address, exp1Config } from '@local-escrow/contracts';
-import { useAccount, useReadContract } from 'wagmi';
-import { Value } from 'ox';
+import { exp1Address, exp1Config } from '@local-escrow/contracts-abi'
+import { useAccount, useReadContract } from 'wagmi'
+import { Value } from 'ox'
 
 export function useExpBalance(address?: `0x${string}`) {
-  const { address: accountAddress } = useAccount();
-  const targetAddress = address ?? accountAddress;
+  const { address: accountAddress } = useAccount()
+  const targetAddress = address ?? accountAddress
 
   const { data: balance } = useReadContract({
     abi: exp1Config.abi,
@@ -15,10 +15,10 @@ export function useExpBalance(address?: `0x${string}`) {
       enabled: !!targetAddress,
       refetchInterval: 2_000,
     },
-  });
+  })
 
-  const raw = balance ?? 0n;
-  const formatted = `${Value.formatEther(raw)} EXP`;
+  const raw = balance ?? 0n
+  const formatted = `${Value.formatEther(raw)} EXP`
 
-  return { raw, formatted };
-} 
+  return { raw, formatted }
+}

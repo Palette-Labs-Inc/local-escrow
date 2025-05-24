@@ -12,7 +12,7 @@
     "@ariakit/react": "catalog:",
     "@atproto/api": "^0.14.22",
     "@atproto/uri": "^0.1.1",
-    "@local-escrow/contracts": "workspace:*",
+    "@local-escrow/contracts-abi": "workspace:*",
     "@local-escrow/core": "workspace:*",
     "@local-escrow/react": "workspace:*",
     "@tailwindcss/vite": "catalog:",

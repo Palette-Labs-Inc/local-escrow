@@ -6,8 +6,8 @@ import type { Address, Hex, Json } from 'ox'
 
 export type EscrowEventInfo = {
   escrowAddress: Address.Address
+  payer: Address.Address
   payee: Address.Address
-  storefront: Address.Address
   arbiter: Address.Address
   blockNumber?: bigint
   transactionHash?: Hex.Hex
@@ -62,18 +62,18 @@ export const useEscrowStore = create<EscrowStore>()(
       storage: createJSONStorage(() => zustandStorage, {
         replacer: (_, value) => {
           if (typeof value === 'bigint') {
-            return `${value.toString()}n`;
+            return `${value.toString()}n`
           }
-          return value;
+          return value
         },
         reviver: (_, value) => {
           if (typeof value === 'string' && value.endsWith('n')) {
-            return BigInt(value.slice(0, -1));
+            return BigInt(value.slice(0, -1))
           }
-          return value;
+          return value
         },
       }),
       version: 1,
     },
   ),
-) 
+)
