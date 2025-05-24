@@ -1,3 +1,3 @@
 
-    export const escrowFactoryAddress = '0xe7f1725e7734ce288f8367e1bb143e90bb3f0512'
+    export const escrowFactoryAddress = '0x2aa49f0df267a8c5bf13b5aeec63634ec3fb1217'
   
