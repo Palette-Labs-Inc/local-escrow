@@ -19,15 +19,16 @@ contract EscrowFactory {
     function createEscrow(
         address payee,
         address arbiter,
-        uint256 settleDeadline,
-        address paymentToken,
-        uint256 paymentAmount
+        uint256 settleDeadline
+        // address paymentToken,
+        // uint256 paymentAmount
     ) external returns (address) {
         // Create minimal proxy clone
         address payable clonedEscrow = payable(escrowImplementation.clone());
         
         // Initialize the clone with the desired parameters
-        SimpleEscrow(clonedEscrow).initialize(payee, msg.sender, arbiter, settleDeadline, paymentToken, paymentAmount);
+        // SimpleEscrow(clonedEscrow).initialize(payee, msg.sender, arbiter, settleDeadline, paymentToken, paymentAmount);
+        SimpleEscrow(clonedEscrow).initialize(payee, msg.sender, arbiter, settleDeadline);
 
         emit EscrowCreated(clonedEscrow, payee, msg.sender, arbiter);
         return clonedEscrow;

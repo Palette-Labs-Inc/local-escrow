@@ -60,7 +60,8 @@ contract SimpleEscrow {
         _;
     }   
 
-    function initialize(address _payee, address _payer, address _arbiter, uint256 settleDeadline, address _paymentToken, uint256 _paymentAmount) external {
+    // function initialize(address _payee, address _payer, address _arbiter, uint256 settleDeadline, address _paymentToken, uint256 _paymentAmount) external {
+    function initialize(address _payee, address _payer, address _arbiter, uint256 settleDeadline) external {
         if (initialized) {
             revert AlreadyInitialized();
         }
@@ -68,8 +69,8 @@ contract SimpleEscrow {
         arbiter = _arbiter;
         payer = _payer;
         settleTime = block.timestamp + settleDeadline;
-        paymentToken = _paymentToken;
-        paymentAmount = _paymentAmount;
+        // paymentToken = _paymentToken;
+        // paymentAmount = _paymentAmount;
         initialized = true;
 
         // The tokens must be approved for transfer by the payer
